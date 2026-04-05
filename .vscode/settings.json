@@ -1,0 +1,8 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "flutter": true,
+    "true": true,
+    "awk": true,
+    "mv": true
+  }
+}
