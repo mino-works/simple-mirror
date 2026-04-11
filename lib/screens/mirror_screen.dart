@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../providers/fortune_provider.dart';
 import '../widgets/hamster_widget.dart';
 import '../models/fortune.dart';
@@ -41,6 +42,16 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   }
 
   Future<void> _initializeCamera() async {
+    // 権限を先に取得してからカメラを初期化する（権限付与直後のクラッシュ防止）
+    final status = await Permission.camera.request();
+    if (status != PermissionStatus.granted) {
+      if (mounted) {
+        setState(() {});
+        _startFortuneFlow();
+      }
+      return;
+    }
+
     try {
       final cameras = await availableCameras();
       if (cameras.isNotEmpty) {
