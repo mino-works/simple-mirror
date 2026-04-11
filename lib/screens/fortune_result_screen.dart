@@ -26,12 +26,11 @@ abstract class _C {
   static const Color closeShadow = Color(0x66FF6E99);
 
   // Asset paths
-  static const String rabbitFun = 'assets/images/rabbit_fun.png';
   static const String rabbitBackground = 'assets/images/background.png';
   static const String rabbitSmall = 'assets/images/rabbit_small.png';
-  static const String iconLove = 'assets/images/icon_love.png';
-  static const String iconMoney = 'assets/images/icon_money.png';
-  static const String iconWork = 'assets/images/icon_work.png';
+  static const String iconLove = 'assets/images/icons/icon_love.png';
+  static const String iconMoney = 'assets/images/icons/icon_money.png';
+  static const String iconWork = 'assets/images/icons/icon_work.png';
 
   // Layout
   static const double heroRatio = 0.60;
@@ -74,7 +73,10 @@ class FortuneResultScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // 上部 60%: 背景＋ウサギ
-                        SizedBox(height: heroH, child: const _RabbitHero()),
+                        SizedBox(
+                          height: heroH,
+                          child: _RabbitHero(imagePath: fortune.imagePath),
+                        ),
                         // 下部: 白背景・上角丸（高さ固定なし・コンテンツに合わせる）
                         Container(
                           decoration: const BoxDecoration(
@@ -125,7 +127,8 @@ class FortuneResultScreen extends ConsumerWidget {
 
 // ─── Rabbit hero image ────────────────────────────────────────────────────────
 class _RabbitHero extends StatelessWidget {
-  const _RabbitHero();
+  const _RabbitHero({required this.imagePath});
+  final String imagePath;
 
   @override
   Widget build(BuildContext context) {
@@ -138,10 +141,10 @@ class _RabbitHero extends StatelessWidget {
           fit: BoxFit.cover,
           errorBuilder: (_, _, _) => const SizedBox(),
         ),
-        // ウサギ画像（中央に配置）
+        // 占い結果に応じたウサギ画像
         Center(
           child: Image.asset(
-            _C.rabbitFun,
+            imagePath,
             fit: BoxFit.contain,
             errorBuilder: (_, _, _) => const Icon(
               Icons.pets,
