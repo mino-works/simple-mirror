@@ -17,10 +17,11 @@ abstract class _C {
   static const Color loveCard = Color(0xFFFFF0F5);
   static const Color moneyCard = Color(0xFFFFFBE6);
   static const Color workCard = Color(0xFFE8F5FF);
-  static const Color commentCard = Color(0xFFDEF0FF);
+  static const Color commentCard = Color(0xFFF0F8FF);  // より薄い水色
   static const Color brownText = Color(0xFF5D3A1A);
   static const Color starFilled = Color(0xFFFFCC00);
-  static const Color starEmpty = Color(0xFFDDDDDD);
+  static const Color starOutline = Color(0xFFB87800);  // 星の縁取り（濃い琥珀）
+  static const Color starEmpty = Color(0xFFAAAAAA);    // より濃いグレー
   static const Color shadow = Color(0x22000000);
   static const Color closeBg = Color(0xFFFF7FA3);
   static const Color closeShadow = Color(0x66FF6E99);
@@ -274,8 +275,8 @@ class _FortuneCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconSize = narrow ? 36.0 : 44.0;
     final labelSize = narrow ? 11.0 : 13.0;
-    final starSize = narrow ? 14.0 : 16.0;
-    final vPad = narrow ? 10.0 : 14.0;
+    final starSize = narrow ? 21.0 : 24.0;
+    final vPad = narrow ? 6.0 : 9.0;
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 6, vertical: vPad),
@@ -301,7 +302,7 @@ class _FortuneCard extends StatelessWidget {
               color: Colors.grey.shade400,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           // ラベル
           Text(
             label,
@@ -314,18 +315,26 @@ class _FortuneCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           // 星評価（必ず1行）
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(5, (i) {
-              return Icon(
-                i < stars ? Icons.star_rounded : Icons.star_outline_rounded,
-                color: i < stars ? _C.starFilled : _C.starEmpty,
-                size: starSize,
-              );
-            }),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(5, (i) {
+                if (i < stars) {
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(Icons.star_rounded, color: _C.starOutline, size: starSize + 3),
+                      Icon(Icons.star_rounded, color: _C.starFilled, size: starSize),
+                    ],
+                  );
+                }
+                return Icon(Icons.star_outline_rounded, color: _C.starEmpty, size: starSize);
+              }),
+            ),
           ),
         ],
       ),
@@ -383,6 +392,12 @@ class _CommentCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          Divider(
+            color: const Color(0xFFB0C8E0),
+            thickness: 1,
+            height: 1,
           ),
           const SizedBox(height: 10),
           // 本文

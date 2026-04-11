@@ -42,9 +42,8 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   }
 
   Future<void> _initializeCamera() async {
-    // 権限を先に取得してからカメラを初期化する（権限付与直後のクラッシュ防止）
-    final status = await Permission.camera.request();
-    if (status != PermissionStatus.granted) {
+    final status = await _requestCameraPermission();
+    if (!status) {
       if (mounted) {
         setState(() {});
         _startFortuneFlow();
@@ -59,7 +58,7 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
           (c) => c.lensDirection == CameraLensDirection.front,
           orElse: () => cameras.first,
         );
-        _controller = CameraController(front, ResolutionPreset.high);
+        _controller = CameraController(front, ResolutionPreset.veryHigh, enableAudio: false);
         await _controller!.initialize();
         try {
           _minExposure = await _controller!.getMinExposureOffset();
@@ -72,6 +71,45 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
       setState(() {});
       _startFortuneFlow();
     }
+  }
+
+  // カメラ権限を確認・リクエストする。true = 許可済み
+  Future<bool> _requestCameraPermission() async {
+    var status = await Permission.camera.status;
+
+    // 未確認の場合はリクエストダイアログを表示
+    if (status.isDenied) {
+      status = await Permission.camera.request();
+    }
+
+    if (status.isGranted) return true;
+
+    // 永久に拒否された場合は設定画面へ誘導
+    if (status.isPermanentlyDenied && mounted) {
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AlertDialog(
+          title: const Text('カメラの許可が必要です'),
+          content: const Text('鏡として使うにはカメラの許可が必要です。設定から許可してください。'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('キャンセル'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await openAppSettings();
+              },
+              child: const Text('設定を開く'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return false;
   }
 
   Future<void> _startFortuneFlow() async {
@@ -151,13 +189,23 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
         ),
       );
     }
-    final preview = CameraPreview(_controller!);
-    // ミラーモード: 前カメラはデフォルトで反転済み → そのまま
-    // 他人から見た自分: さらに反転して元に戻す
+    // previewSize はランドスケープ基準なので、ポートレートでは height/width を入れ替える
+    final previewSize = _controller!.value.previewSize!;
+    Widget camera = SizedBox.expand(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: previewSize.height,
+          height: previewSize.width,
+          child: CameraPreview(_controller!),
+        ),
+      ),
+    );
+    // 他人から見た自分: さらに反転
     if (!_isMirrorMode) {
-      return Transform.scale(scaleX: -1, child: preview);
+      return Transform.scale(scaleX: -1, child: camera);
     }
-    return preview;
+    return camera;
   }
 
   Widget _buildCharacterArea() {
