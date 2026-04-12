@@ -27,14 +27,13 @@ abstract class _C {
   static const Color closeShadow = Color(0x66FF6E99);
 
   // Asset paths
-  static const String rabbitBackground = 'assets/images/background.png';
   static const String rabbitSmall = 'assets/images/rabbit_small.png';
   static const String iconLove = 'assets/images/icons/icon_love.png';
   static const String iconMoney = 'assets/images/icons/icon_money.png';
   static const String iconWork = 'assets/images/icons/icon_work.png';
 
   // Layout
-  static const double heroRatio = 0.60;
+  static const double heroRatio = 0.55;
   static const double titlePlateH = 44.0;
   static const double titleOverlap = titlePlateH / 2;
 }
@@ -76,7 +75,10 @@ class FortuneResultScreen extends ConsumerWidget {
                         // 上部 60%: 背景＋ウサギ
                         SizedBox(
                           height: heroH,
-                          child: _RabbitHero(imagePath: fortune.imagePath),
+                          child: _RabbitHero(
+                            imagePath: fortune.imagePath,
+                            backgroundPath: fortune.backgroundPath,
+                          ),
                         ),
                         // 下部: 白背景・上角丸（高さ固定なし・コンテンツに合わせる）
                         Container(
@@ -128,20 +130,22 @@ class FortuneResultScreen extends ConsumerWidget {
 
 // ─── Rabbit hero image ────────────────────────────────────────────────────────
 class _RabbitHero extends StatelessWidget {
-  const _RabbitHero({required this.imagePath});
+  const _RabbitHero({required this.imagePath, this.backgroundPath});
   final String imagePath;
+  final String? backgroundPath;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 背景画像
-        Image.asset(
-          _C.rabbitBackground,
-          fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => const SizedBox(),
-        ),
+        // 背景画像（nullの場合はウサギ画像に背景込みのため非表示）
+        if (backgroundPath != null)
+          Image.asset(
+            backgroundPath!,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => const SizedBox(),
+          ),
         // 占い結果に応じたウサギ画像
         Center(
           child: Image.asset(
@@ -357,7 +361,7 @@ class _CommentCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(pad),
+      padding: EdgeInsets.symmetric(horizontal: pad, vertical: narrow ? 8.0 : 10.0),
       decoration: BoxDecoration(
         color: _C.commentCard,
         borderRadius: BorderRadius.circular(_C.cardRadius),
@@ -393,13 +397,13 @@ class _CommentCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Divider(
             color: const Color(0xFFB0C8E0),
             thickness: 1,
             height: 1,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           // 本文
           Text(
             fortune.dailyMessage,
@@ -426,8 +430,8 @@ class _CloseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 220,
-      height: 54,
+      width: 200,
+      height: 44,
       child: ElevatedButton(
         onPressed: onClose,
         style: ElevatedButton.styleFrom(
@@ -441,7 +445,7 @@ class _CloseButton extends StatelessWidget {
         child: const Text(
           '閉じる',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 15,
             fontWeight: FontWeight.w800,
             color: Colors.white,
             letterSpacing: 0.6,

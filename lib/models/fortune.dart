@@ -11,6 +11,7 @@ class Fortune {
   final String dailyMessage;
   final HamsterExpression expression;
   final String imagePath;
+  final String? backgroundPath;
 
   Fortune({
     required this.overallLuck,
@@ -25,6 +26,7 @@ class Fortune {
     required this.dailyMessage,
     required this.expression,
     required this.imagePath,
+    this.backgroundPath,
   });
 
   Map<String, dynamic> toJson() => {
@@ -57,6 +59,7 @@ class Fortune {
           orElse: () => HamsterExpression.normal,
         ),
         imagePath: (json['imagePath'] as String?) ?? 'assets/images/rabbits/default/rabbit_01.png',
+        backgroundPath: json['backgroundPath'] as String?,
       );
 }
 

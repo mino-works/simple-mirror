@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../providers/fortune_provider.dart';
-import '../widgets/hamster_widget.dart';
-import '../models/fortune.dart';
 import 'fortune_result_screen.dart';
 
 enum _BubbleState { inProgress, ready }
@@ -24,6 +22,9 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   double _minExposure = -2.0;
   double _maxExposure = 2.0;
   double _exposureValue = 0.0;
+  double _minZoom = 1.0;
+  double _maxZoom = 1.0;
+  double _zoomValue = 1.0;
   late final AnimationController _bounceCtrl;
   late final Animation<double> _bounceAnim;
 
@@ -63,6 +64,10 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
         try {
           _minExposure = await _controller!.getMinExposureOffset();
           _maxExposure = await _controller!.getMaxExposureOffset();
+        } catch (_) {}
+        try {
+          _minZoom = await _controller!.getMinZoomLevel();
+          _maxZoom = await _controller!.getMaxZoomLevel();
         } catch (_) {}
       }
     } catch (_) {}
@@ -137,6 +142,13 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
     } catch (_) {}
   }
 
+  Future<void> _onZoomChanged(double value) async {
+    setState(() => _zoomValue = value);
+    try {
+      await _controller!.setZoomLevel(value);
+    } catch (_) {}
+  }
+
   void _goToResult() {
     Navigator.of(
       context,
@@ -162,10 +174,18 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
           // カメラ映像（全画面）
           Positioned.fill(child: _buildCameraPreview()),
 
+          // 上部：明るさスライダー（キャラクターと重ならないよう右マージン）
+          Positioned(
+            top: top + 16,
+            left: 16,
+            right: 130,
+            child: _buildBrightnessSlider(),
+          ),
+
           // 右上：キャラクター + 吹き出し
           Positioned(top: top + 20, right: 16, child: _buildCharacterArea()),
 
-          // 左下：明るさスライダー
+          // 下部：ズームスライダー + ミラー切替
           Positioned(
             bottom: bottom + 24,
             left: 16,
@@ -230,11 +250,40 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
               offset: Offset(0, _bounceAnim.value),
               child: child,
             ),
-            child: HamsterWidget(
-              expression: _bubbleState == _BubbleState.ready
-                  ? HamsterExpression.cheer
-                  : HamsterExpression.normal,
-              size: 72,
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _bubbleState == _BubbleState.ready
+                    ? Colors.white
+                    : const Color(0xFFCCCCCC),
+                border: Border.all(
+                  color: _bubbleState == _BubbleState.ready
+                      ? const Color(0xFFFFB5D0)
+                      : const Color(0xFF999999),
+                  width: 2.5,
+                ),
+              ),
+              child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: ColorFiltered(
+                    colorFilter: _bubbleState == _BubbleState.ready
+                        ? const ColorFilter.mode(Colors.transparent, BlendMode.dst)
+                        : const ColorFilter.matrix([
+                            0.2126, 0.7152, 0.0722, 0, 0,
+                            0.2126, 0.7152, 0.0722, 0, 0,
+                            0.2126, 0.7152, 0.0722, 0, 0,
+                            0,      0,      0,      1, 0,
+                          ]),
+                    child: Image.asset(
+                      'assets/images/fortune.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ),
@@ -246,12 +295,45 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // 明るさスライダー（左寄り）
-        Expanded(child: _buildBrightnessSlider()),
+        Expanded(child: _buildZoomSlider()),
         const SizedBox(width: 12),
-        // ミラー切替（右）
         _buildMirrorToggle(),
       ],
+    );
+  }
+
+  Widget _buildZoomSlider() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.black.withAlpha(130),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.zoom_out_rounded, color: Colors.white54, size: 18),
+          Expanded(
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 2,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                activeTrackColor: Colors.white,
+                inactiveTrackColor: Colors.white30,
+                thumbColor: Colors.white,
+                overlayColor: Colors.white24,
+              ),
+              child: Slider(
+                value: _zoomValue,
+                min: _minZoom,
+                max: _maxZoom.clamp(1.0, 3.0),
+                onChanged: _onZoomChanged,
+              ),
+            ),
+          ),
+          const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 18),
+        ],
+      ),
     );
   }
 
@@ -295,35 +377,39 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   }
 
   Widget _buildMirrorToggle() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.black.withAlpha(130),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withAlpha(60), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildToggleOption('ミラー', _isMirrorMode),
+          _buildToggleOption('他人から', !_isMirrorMode),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleOption(String label, bool isActive) {
     return GestureDetector(
-      onTap: () => setState(() => _isMirrorMode = !_isMirrorMode),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      onTap: () => setState(() => _isMirrorMode = label == 'ミラー'),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: _isMirrorMode
-              ? Colors.white.withAlpha(220)
-              : Colors.black.withAlpha(130),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withAlpha(100), width: 1),
+          color: isActive ? Colors.white.withAlpha(220) : Colors.transparent,
+          borderRadius: BorderRadius.circular(19),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              _isMirrorMode ? Icons.flip : Icons.person_outline_rounded,
-              color: _isMirrorMode ? Colors.black87 : Colors.white,
-              size: 20,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              _isMirrorMode ? 'ミラー' : '他人から',
-              style: TextStyle(
-                color: _isMirrorMode ? Colors.black87 : Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isActive ? Colors.black87 : Colors.white70,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
