@@ -13,7 +13,7 @@ abstract class _C {
 
   // Colors
   static const Color bgTop = Color(0xFFFFD6E7);
-  static const Color bgBottom = Color(0xFFCCE8FF);
+  static const Color bgBottom = Colors.white;
   static const Color loveCard = Color(0xFFFFF0F5);
   static const Color moneyCard = Color(0xFFFFFBE6);
   static const Color workCard = Color(0xFFE8F5FF);
@@ -84,9 +84,6 @@ class FortuneResultScreen extends ConsumerWidget {
                         Container(
                           decoration: const BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(28),
-                            ),
                           ),
                           padding: EdgeInsets.fromLTRB(
                             hPad,
@@ -430,7 +427,7 @@ class _CloseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 200,
+      width: 140,
       height: 44,
       child: ElevatedButton(
         onPressed: onClose,
