@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/fortune_provider.dart';
+import '../providers/costume_provider.dart';
 import '../models/fortune.dart';
+import 'costume_screen.dart';
 
 // ─── UI Constants ─────────────────────────────────────────────────────────────
 abstract class _C {
@@ -23,7 +25,6 @@ abstract class _C {
   static const Color starOutline = Color(0xFFB87800);  // 星の縁取り（濃い琥珀）
   static const Color starEmpty = Color(0xFFAAAAAA);    // より濃いグレー
   static const Color shadow = Color(0x22000000);
-  static const Color closeBg = Color(0xFFFF7FA3);
   static const Color closeShadow = Color(0x66FF6E99);
 
   // Asset paths
@@ -45,6 +46,7 @@ class FortuneResultScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fortune = ref.watch(fortuneProvider);
+    final costume = ref.watch(costumeProvider);
     if (fortune == null) {
       return const Scaffold(body: Center(child: Text('占いデータがありません')));
     }
@@ -76,7 +78,7 @@ class FortuneResultScreen extends ConsumerWidget {
                         SizedBox(
                           height: heroH,
                           child: _RabbitHero(
-                            imagePath: fortune.imagePath,
+                            imagePath: costume.applyTo(fortune.imagePath),
                             backgroundPath: fortune.backgroundPath,
                           ),
                         ),
@@ -97,8 +99,11 @@ class FortuneResultScreen extends ConsumerWidget {
                               const SizedBox(height: 10),
                               _CommentCard(fortune: fortune, narrow: narrow),
                               const SizedBox(height: 12),
-                              _CloseButton(
-                                onClose: () => Navigator.of(context).pop(),
+                              _NavButtons(
+                                onMirror: () => Navigator.of(context).pop(),
+                                onCostume: () => Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const CostumeScreen()),
+                                ),
                               ),
                             ],
                           ),
@@ -419,36 +424,59 @@ class _CommentCard extends StatelessWidget {
   }
 }
 
-// ─── Close button ─────────────────────────────────────────────────────────────
-class _CloseButton extends StatelessWidget {
-  const _CloseButton({required this.onClose});
-  final VoidCallback onClose;
+// ─── Navigation buttons ───────────────────────────────────────────────────────
+class _NavButtons extends StatelessWidget {
+  const _NavButtons({required this.onMirror, required this.onCostume});
+  final VoidCallback onMirror;
+  final VoidCallback onCostume;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 140,
-      height: 44,
-      child: ElevatedButton(
-        onPressed: onClose,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _C.closeBg,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          elevation: 6,
-          shadowColor: _C.closeShadow,
-        ),
-        child: const Text(
-          '閉じる',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-            letterSpacing: 0.6,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // 鏡に戻る
+        SizedBox(
+          height: 44,
+          child: ElevatedButton(
+            onPressed: onMirror,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFFB5D0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              elevation: 4,
+              shadowColor: _C.closeShadow,
+            ),
+            child: const Text(
+              '鏡に戻る',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+            ),
           ),
         ),
-      ),
+        const SizedBox(width: 12),
+        // 着せ替え
+        SizedBox(
+          height: 44,
+          child: ElevatedButton(
+            onPressed: onCostume,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF9B6DD6),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              elevation: 4,
+              shadowColor: const Color(0x669B6DD6),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.checkroom_rounded, color: Colors.white, size: 16),
+                SizedBox(width: 4),
+                Text(
+                  '着せ替え',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../providers/fortune_provider.dart';
 import 'fortune_result_screen.dart';
+import 'costume_screen.dart';
 
 enum _BubbleState { inProgress, ready }
 
@@ -241,10 +242,32 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
           ),
         ),
         const SizedBox(height: 6),
-        // バウンドするキャラクター（タップ可能）
-        GestureDetector(
-          onTap: _bubbleState == _BubbleState.ready ? _goToResult : null,
-          child: AnimatedBuilder(
+        // 着せ替えアイコン + 占いアイコン
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 着せ替えボタン
+            GestureDetector(
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CostumeScreen()),
+              ),
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withAlpha(200),
+                  border: Border.all(color: const Color(0xFFCCA8E8), width: 2),
+                ),
+                child: const Icon(Icons.checkroom_rounded, color: Color(0xFF9B6DD6), size: 22),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // バウンドする占いアイコン（タップ可能）
+            GestureDetector(
+              onTap: _bubbleState == _BubbleState.ready ? _goToResult : null,
+              child: AnimatedBuilder(
             animation: _bounceAnim,
             builder: (context, child) => Transform.translate(
               offset: Offset(0, _bounceAnim.value),
@@ -287,6 +310,8 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
             ),
           ),
         ),
+          ],
+        ),
       ],
     );
   }
@@ -324,9 +349,9 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
                 overlayColor: Colors.white24,
               ),
               child: Slider(
-                value: _zoomValue,
+                value: _zoomValue.clamp(_minZoom, _maxZoom.clamp(_minZoom + 0.01, 3.0)),
                 min: _minZoom,
-                max: _maxZoom.clamp(1.0, 3.0),
+                max: _maxZoom.clamp(_minZoom + 0.01, 3.0),
                 onChanged: _onZoomChanged,
               ),
             ),
