@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../providers/fortune_provider.dart';
+import '../utils/fortune_generator.dart';
 import 'fortune_result_screen.dart';
 import 'costume_screen.dart';
 
@@ -192,6 +193,13 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
             left: 16,
             right: 16,
             child: _buildBottomControls(),
+          ),
+
+          // デバッグ用：結果画面選択ボタン
+          Positioned(
+            bottom: bottom + 24,
+            left: 16,
+            child: _buildDebugButton(),
           ),
         ],
       ),
@@ -397,6 +405,89 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
           ),
           const Icon(Icons.brightness_7_rounded, color: Colors.white, size: 18),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDebugButton() {
+    return GestureDetector(
+      onTap: () => _showDebugFortuneSheet(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.orange.withAlpha(200),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          'TEST',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDebugFortuneSheet() {
+    final fortunes = FortuneGenerator.getAllFortunes();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 14),
+              child: Text(
+                '結果画面を選択（デバッグ用）',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const Divider(color: Colors.white24, height: 1),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: fortunes.length,
+                separatorBuilder: (_, _) => const Divider(color: Colors.white12, height: 1),
+                itemBuilder: (_, i) {
+                  final f = fortunes[i];
+                  return ListTile(
+                    dense: true,
+                    leading: Text(
+                      '${i + 1}',
+                      style: const TextStyle(color: Colors.white38, fontSize: 12),
+                    ),
+                    title: Text(
+                      f.overallTitle,
+                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: Text(
+                      '総合${f.overallLuck} / 恋${f.loveLuck} / 金${f.moneyLuck} / 仕${f.workLuck}',
+                      style: const TextStyle(color: Colors.white54, fontSize: 11),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      ref.read(fortuneProvider.notifier).setFortune(f);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const FortuneResultScreen()),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

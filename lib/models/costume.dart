@@ -1,6 +1,7 @@
 enum Costume {
   normal,
-  carrot;
+  carrot,
+  dress;
 
   String get label {
     switch (this) {
@@ -8,6 +9,8 @@ enum Costume {
         return 'ノーマル';
       case Costume.carrot:
         return '人参コスプレ';
+      case Costume.dress:
+        return 'ドレス';
     }
   }
 
@@ -17,6 +20,8 @@ enum Costume {
         return 'assets/images/rabbits/default';
       case Costume.carrot:
         return 'assets/images/rabbits/carrot';
+      case Costume.dress:
+        return 'assets/images/rabbits/dress';
     }
   }
 

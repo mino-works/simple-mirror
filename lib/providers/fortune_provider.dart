@@ -32,5 +32,10 @@ class FortuneNotifier extends StateNotifier<Fortune?> {
     state = fortune;
   }
 
+  // デバッグ用: 特定のFortuneを直接セットする
+  void setFortune(Fortune fortune) {
+    state = fortune;
+  }
+
   bool get hasTodayFortune => state != null;
 }

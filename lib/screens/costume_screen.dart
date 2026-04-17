@@ -6,9 +6,9 @@ import '../providers/costume_provider.dart';
 class CostumeScreen extends ConsumerWidget {
   const CostumeScreen({super.key});
 
-  static const _available = [Costume.normal, Costume.carrot];
+  static const _available = [Costume.normal, Costume.carrot, Costume.dress];
   // 近日公開の枠数（グリッドをきれいに見せるため）
-  static const _comingSoonCount = 2;
+  static const _comingSoonCount = 1;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
