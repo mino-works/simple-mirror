@@ -80,18 +80,12 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
     }
   }
 
-  // カメラ権限を確認・リクエストする。true = 許可済み
   Future<bool> _requestCameraPermission() async {
     var status = await Permission.camera.status;
-
-    // 未確認の場合はリクエストダイアログを表示
     if (status.isDenied) {
       status = await Permission.camera.request();
     }
-
     if (status.isGranted) return true;
-
-    // 永久に拒否された場合は設定画面へ誘導
     if (status.isPermanentlyDenied && mounted) {
       await showDialog(
         context: context,
@@ -115,7 +109,6 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
         ),
       );
     }
-
     return false;
   }
 
@@ -129,7 +122,6 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
       return;
     }
 
-    // 占い中... のまま3秒待つ
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
 
@@ -152,9 +144,7 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   }
 
   void _goToResult() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const FortuneResultScreen()));
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FortuneResultScreen()));
   }
 
   @override
@@ -168,7 +158,6 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
     final bottom = MediaQuery.of(context).padding.bottom;
-
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -176,30 +165,41 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
           // カメラ映像（全画面）
           Positioned.fill(child: _buildCameraPreview()),
 
-          // 上部：明るさスライダー（キャラクターと重ならないよう右マージン）
+          // 上部: 明るさスライダー ＋ ミラートグルを同じ行に配置
           Positioned(
             top: top + 16,
             left: 16,
-            right: 130,
-            child: _buildBrightnessSlider(),
-          ),
-
-          // 右上：キャラクター + 吹き出し
-          Positioned(top: top + 20, right: 16, child: _buildCharacterArea()),
-
-          // 下部：ズームスライダー + ミラー切替
-          Positioned(
-            bottom: bottom + 24,
-            left: 16,
             right: 16,
-            child: _buildBottomControls(),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(child: _buildBrightnessSlider()),
+                const SizedBox(width: 8),
+                _buildMirrorToggle(),
+              ],
+            ),
           ),
 
-          // デバッグ用：結果画面選択ボタン
+          // デバッグボタン（明るさスライダーの下）
           Positioned(
-            bottom: bottom + 24,
+            top: top + 70,
             left: 16,
             child: _buildDebugButton(),
+          ),
+
+          // 左下: ズームスライダー（明るさスライダーと同じ長さ）
+          Positioned(
+            bottom: bottom + 20,
+            left: 16,
+            right: 160,
+            child: _buildZoomSlider(),
+          ),
+
+          // 右下: 占いアイコン + 着せ替えアイコン
+          Positioned(
+            bottom: bottom + 16,
+            right: 16,
+            child: _buildBottomRightIcons(),
           ),
         ],
       ),
@@ -218,7 +218,6 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
         ),
       );
     }
-    // previewSize はランドスケープ基準なので、ポートレートでは height/width を入れ替える
     final previewSize = _controller!.value.previewSize!;
     Widget camera = SizedBox.expand(
       child: FittedBox(
@@ -230,108 +229,107 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
         ),
       ),
     );
-    // 他人から見た自分: さらに反転
     if (!_isMirrorMode) {
       return Transform.scale(scaleX: -1, child: camera);
     }
     return camera;
   }
 
-  Widget _buildCharacterArea() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
+  Widget _buildBottomRightIcons() {
+    final isReady = _bubbleState == _BubbleState.ready;
+    const iconSize = 56.0;
+    const gap = 4.0;
+
+    return Stack(
+      clipBehavior: Clip.none,
       children: [
-        // 吹き出し
-        GestureDetector(
-          onTap: _bubbleState == _BubbleState.ready ? _goToResult : null,
-          child: _SpeechBubble(
-            text: _bubbleState == _BubbleState.inProgress ? '占い中...' : '占い完了！',
-            isReady: _bubbleState == _BubbleState.ready,
-          ),
-        ),
-        const SizedBox(height: 6),
-        // 着せ替えアイコン + 占いアイコン
+        // アイコン2つのRow（幅: 56 + 4 + 56 = 116px）
         Row(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // 着せ替えボタン
+            // 着せ替えアイコン
             GestureDetector(
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const CostumeScreen()),
               ),
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withAlpha(200),
-                  border: Border.all(color: const Color(0xFFCCA8E8), width: 2),
-                ),
-                child: const Icon(Icons.checkroom_rounded, color: Color(0xFF9B6DD6), size: 22),
+              child: _buildIconCircle(
+                borderColor: const Color(0xFFCCA8E8),
+                bgColor: Colors.white,
+                child: const Icon(Icons.checkroom_rounded, color: Color(0xFF9B6DD6), size: 26),
               ),
             ),
-            const SizedBox(width: 8),
-            // バウンドする占いアイコン（タップ可能）
+            const SizedBox(width: gap),
+            // 占いアイコン
             GestureDetector(
-              onTap: _bubbleState == _BubbleState.ready ? _goToResult : null,
+              onTap: isReady ? _goToResult : null,
               child: AnimatedBuilder(
-            animation: _bounceAnim,
-            builder: (context, child) => Transform.translate(
-              offset: Offset(0, _bounceAnim.value),
-              child: child,
-            ),
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _bubbleState == _BubbleState.ready
-                    ? Colors.white
-                    : const Color(0xFFCCCCCC),
-                border: Border.all(
-                  color: _bubbleState == _BubbleState.ready
-                      ? const Color(0xFFFFB5D0)
-                      : const Color(0xFF999999),
-                  width: 2.5,
+                animation: _bounceAnim,
+                builder: (context, child) => Transform.translate(
+                  offset: isReady ? Offset(0, _bounceAnim.value) : Offset.zero,
+                  child: child,
                 ),
-              ),
-              child: ClipOval(
-                child: Padding(
-                  padding: const EdgeInsets.all(2),
-                  child: ColorFiltered(
-                    colorFilter: _bubbleState == _BubbleState.ready
-                        ? const ColorFilter.mode(Colors.transparent, BlendMode.dst)
-                        : const ColorFilter.matrix([
-                            0.2126, 0.7152, 0.0722, 0, 0,
-                            0.2126, 0.7152, 0.0722, 0, 0,
-                            0.2126, 0.7152, 0.0722, 0, 0,
-                            0,      0,      0,      1, 0,
-                          ]),
-                    child: Image.asset(
-                      'assets/images/fortune.png',
-                      fit: BoxFit.contain,
+                child: _buildIconCircle(
+                  borderColor: isReady ? const Color(0xFFFFB5D0) : const Color(0xFF999999),
+                  bgColor: isReady ? Colors.white : const Color(0xFFCCCCCC),
+                  child: ClipOval(
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: ColorFiltered(
+                        colorFilter: isReady
+                            ? const ColorFilter.mode(Colors.transparent, BlendMode.dst)
+                            : const ColorFilter.matrix([
+                                0.2126, 0.7152, 0.0722, 0, 0,
+                                0.2126, 0.7152, 0.0722, 0, 0,
+                                0.2126, 0.7152, 0.0722, 0, 0,
+                                0,      0,      0,      1, 0,
+                              ]),
+                        child: Image.asset('assets/images/fortune.png', fit: BoxFit.contain),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
           ],
+        ),
+        // 吹き出し: Stackの外側（上方）に絶対配置。レイアウト幅に影響させない
+        Positioned(
+          right: 0,
+          bottom: iconSize + 6,
+          child: GestureDetector(
+            onTap: isReady ? _goToResult : null,
+            child: _SpeechBubble(
+              text: isReady ? '占い完了！' : '占い中...',
+              isReady: isReady,
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildBottomControls() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(child: _buildZoomSlider()),
-        const SizedBox(width: 12),
-        _buildMirrorToggle(),
-      ],
+  Widget _buildIconCircle({
+    required Color borderColor,
+    required Color bgColor,
+    required Widget child,
+  }) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: bgColor,
+        border: Border.all(color: borderColor, width: 2.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(50),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 
@@ -379,11 +377,7 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.brightness_4_rounded,
-            color: Colors.white54,
-            size: 18,
-          ),
+          const Icon(Icons.brightness_4_rounded, color: Colors.white54, size: 18),
           Expanded(
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
@@ -547,7 +541,8 @@ class _SpeechBubble extends StatelessWidget {
       alignment: Alignment.bottomRight,
       children: [
         AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 200),
+          constraints: const BoxConstraints(minWidth: 96),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: isReady ? Colors.pink.shade100 : Colors.white.withAlpha(230),
@@ -566,6 +561,7 @@ class _SpeechBubble extends StatelessWidget {
           ),
           child: Text(
             text,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
               fontWeight: isReady ? FontWeight.bold : FontWeight.normal,
@@ -573,10 +569,10 @@ class _SpeechBubble extends StatelessWidget {
             ),
           ),
         ),
-        // 三角テイル
+        // 三角テイル（アイコン中心に合わせて right: 22 = アイコン半径 28px から右端）
         Positioned(
           bottom: -7,
-          right: 20,
+          right: 22,
           child: CustomPaint(
             size: const Size(12, 7),
             painter: _TailPainter(

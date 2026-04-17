@@ -437,6 +437,7 @@ class _NavButtons extends StatelessWidget {
       children: [
         // 鏡に戻る
         SizedBox(
+          width: 130,
           height: 44,
           child: ElevatedButton(
             onPressed: onMirror,
@@ -455,6 +456,7 @@ class _NavButtons extends StatelessWidget {
         const SizedBox(width: 12),
         // 着せ替え
         SizedBox(
+          width: 130,
           height: 44,
           child: ElevatedButton(
             onPressed: onCostume,
@@ -464,15 +466,9 @@ class _NavButtons extends StatelessWidget {
               elevation: 4,
               shadowColor: const Color(0x669B6DD6),
             ),
-            child: const Row(
-              children: [
-                Icon(Icons.checkroom_rounded, color: Colors.white, size: 16),
-                SizedBox(width: 4),
-                Text(
-                  '着せ替え',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
-                ),
-              ],
+            child: const Text(
+              '着せ替え',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
             ),
           ),
         ),

@@ -7,8 +7,7 @@ class CostumeScreen extends ConsumerWidget {
   const CostumeScreen({super.key});
 
   static const _available = [Costume.normal, Costume.carrot, Costume.dress];
-  // 近日公開の枠数（グリッドをきれいに見せるため）
-  static const _comingSoonCount = 1;
+  static const _comingSoonCount = 5;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,12 +17,12 @@ class CostumeScreen extends ConsumerWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF2D1B69),
-              Color(0xFF6B2FA0),
-              Color(0xFFD4548A),
+              Color(0xFFFFD6E7),
+              Color(0xFFFFF0F8),
+              Colors.white,
             ],
           ),
         ),
@@ -31,19 +30,17 @@ class CostumeScreen extends ConsumerWidget {
           child: Column(
             children: [
               const SizedBox(height: 24),
-              // ── タイトル ──
               _buildTitle(),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               const Text(
-                'あなたのウサギをおしゃれに✨',
+                'あなたのウサギをおしゃれに',
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: Color(0xFF9B6DD6),
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 32),
-              // ── コスチュームグリッド ──
+              const SizedBox(height: 24),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -66,25 +63,28 @@ class CostumeScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              // ── 戻るボタン ──
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.white.withAlpha(30),
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      side: const BorderSide(color: Colors.white38, width: 1),
+                child: SizedBox(
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFB5D0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 4,
+                      shadowColor: const Color(0x66FF6E99),
+                      padding: const EdgeInsets.symmetric(horizontal: 48),
                     ),
-                  ),
-                  child: const Text(
-                    'もどる',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
+                    child: const Text(
+                      'もどる',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
@@ -99,36 +99,25 @@ class CostumeScreen extends ConsumerWidget {
   Widget _buildTitle() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const _StarIcon(),
-        const SizedBox(width: 10),
-        const Text(
+      children: const [
+        Icon(Icons.auto_awesome, color: Color(0xFFFFCC00), size: 20),
+        SizedBox(width: 10),
+        Text(
           'きせかえ',
           style: TextStyle(
-            color: Colors.white,
+            color: Color(0xFF5D3A1A),
             fontSize: 28,
             fontWeight: FontWeight.w900,
             letterSpacing: 2,
           ),
         ),
-        const SizedBox(width: 10),
-        const _StarIcon(),
+        SizedBox(width: 10),
+        Icon(Icons.auto_awesome, color: Color(0xFFFFCC00), size: 20),
       ],
     );
   }
 }
 
-// ── 星デコレーション ──────────────────────────────────────────────
-class _StarIcon extends StatelessWidget {
-  const _StarIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Icon(Icons.auto_awesome, color: Color(0xFFFFD700), size: 22);
-  }
-}
-
-// ── コスチュームカード ─────────────────────────────────────────────
 class _CostumeCard extends StatelessWidget {
   const _CostumeCard({
     required this.costume,
@@ -147,28 +136,36 @@ class _CostumeCard extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.white.withAlpha(240)
-              : Colors.white.withAlpha(40),
+          color: isSelected ? Colors.white : const Color(0xFFFFF0F5),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? const Color(0xFFFFD700) : Colors.white30,
-            width: isSelected ? 3 : 1,
+            color: isSelected ? const Color(0xFFFFD700) : const Color(0xFFFFCCDD),
+            width: isSelected ? 3 : 1.5,
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFFFFD700).withAlpha(100),
-                    blurRadius: 20,
+                    color: const Color(0xFFFFD700).withAlpha(80),
+                    blurRadius: 16,
                     spreadRadius: 2,
                   ),
+                  BoxShadow(
+                    color: Colors.black.withAlpha(15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
                 ]
-              : [],
+              : [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(10),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // プレビュー画像
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -178,14 +175,11 @@ class _CostumeCard extends StatelessWidget {
                   errorBuilder: (_, _, _) => Icon(
                     Icons.pets,
                     size: 60,
-                    color: isSelected
-                        ? const Color(0xFF775377)
-                        : Colors.white54,
+                    color: isSelected ? const Color(0xFF9B6DD6) : const Color(0xFFCCAADD),
                   ),
                 ),
               ),
             ),
-            // ラベル
             Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: Row(
@@ -205,9 +199,7 @@ class _CostumeCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: isSelected
-                          ? const Color(0xFF5D3A1A)
-                          : Colors.white,
+                      color: isSelected ? const Color(0xFF5D3A1A) : const Color(0xFF9B6DD6),
                     ),
                   ),
                 ],
@@ -220,7 +212,6 @@ class _CostumeCard extends StatelessWidget {
   }
 }
 
-// ── 近日公開カード ────────────────────────────────────────────────
 class _ComingSoonCard extends StatelessWidget {
   const _ComingSoonCard();
 
@@ -228,9 +219,16 @@ class _ComingSoonCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(15),
+        color: const Color(0xFFFFF8FC),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white24, width: 1),
+        border: Border.all(color: const Color(0xFFEECCDD), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(8),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -238,15 +236,15 @@ class _ComingSoonCard extends StatelessWidget {
           Icon(
             Icons.lock_outline_rounded,
             size: 40,
-            color: Colors.white.withAlpha(100),
+            color: const Color(0xFFCCAACC).withAlpha(180),
           ),
           const SizedBox(height: 12),
-          Text(
-            '近日公開',
+          const Text(
+            'Coming soon',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: Colors.white.withAlpha(120),
+              color: Color(0xFFBB99BB),
             ),
           ),
         ],
