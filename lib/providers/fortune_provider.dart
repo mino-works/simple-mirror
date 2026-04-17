@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,6 +15,9 @@ class FortuneNotifier extends StateNotifier<Fortune?> {
     _loadTodayFortune();
   }
 
+  final _initCompleter = Completer<void>();
+  Future<void> get initialized => _initCompleter.future;
+
   Future<void> _loadTodayFortune() async {
     final prefs = await SharedPreferences.getInstance();
     final todayKey = DateUtils.getTodayKey();
@@ -22,6 +26,7 @@ class FortuneNotifier extends StateNotifier<Fortune?> {
       final fortune = Fortune.fromJson(jsonDecode(fortuneJson) as Map<String, dynamic>);
       state = fortune;
     }
+    _initCompleter.complete();
   }
 
   Future<void> generateAndSaveFortune() async {

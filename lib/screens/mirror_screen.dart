@@ -4,6 +4,8 @@ import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/fortune_provider.dart';
+import '../providers/fortune_count_provider.dart';
+import '../providers/iap_provider.dart';
 import '../providers/progress_provider.dart';
 import '../utils/fortune_generator.dart';
 import 'fortune_result_screen.dart';
@@ -24,6 +26,7 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   CameraController? _controller;
   _BubbleState _bubbleState = _BubbleState.inProgress;
+  bool _bubbleVisible = false; // provider確認前は吹き出しを非表示
   bool _isMirrorMode = true;
   double _minExposure = -2.0;
   double _maxExposure = 2.0;
@@ -117,19 +120,42 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   }
 
   Future<void> _startFortuneFlow() async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    // provider確認前に吹き出しを表示しない
+    await Future.wait([
+      ref.read(fortuneProvider.notifier).initialized,
+      ref.read(fortuneCountProvider.notifier).initialized,
+    ]);
     if (!mounted) return;
 
+    final isPremium = ref.read(iapProvider).isPremium;
+    final count = ref.read(fortuneCountProvider);
     final existing = ref.read(fortuneProvider);
-    if (existing != null) {
-      setState(() => _bubbleState = _BubbleState.ready);
+
+    // 既に今日占っている → 即「占い完了」
+    if (!count.canDivine(isPremium) || existing != null) {
+      if (existing != null && count.todayCount == 0) {
+        await ref.read(fortuneCountProvider.notifier).recordDivine();
+      }
+      if (mounted) {
+        setState(() {
+          _bubbleVisible = true;
+          _bubbleState = _BubbleState.ready;
+        });
+      }
       return;
     }
+
+    // 初回 → 「占い中」を表示してから生成
+    setState(() {
+      _bubbleVisible = true;
+      _bubbleState = _BubbleState.inProgress;
+    });
 
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
 
     await ref.read(fortuneProvider.notifier).generateAndSaveFortune();
+    await ref.read(fortuneCountProvider.notifier).recordDivine();
     if (mounted) setState(() => _bubbleState = _BubbleState.ready);
   }
 
@@ -173,21 +199,26 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
           // カメラ映像（全画面）
           Positioned.fill(child: _buildCameraPreview()),
 
-          // 上部: ハンバーガー ＋ 明るさスライダー ＋ ミラートグル
+          // 上部: ハンバーガー ＋ 明るさスライダー（右端はアイコン分を空ける）
           Positioned(
             top: top + 16,
             left: 16,
-            right: 16,
+            right: 140,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildHamburgerButton(),
                 const SizedBox(width: 8),
                 Expanded(child: _buildBrightnessSlider()),
-                const SizedBox(width: 8),
-                _buildMirrorToggle(l),
               ],
             ),
+          ),
+
+          // 右上: 占いアイコン + 着せ替えアイコン
+          Positioned(
+            top: top + 16,
+            right: 16,
+            child: _buildTopRightIcons(l),
           ),
 
           // デバッグボタン（明るさスライダーの下）
@@ -197,19 +228,19 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
             child: _buildDebugButton(),
           ),
 
-          // 左下: ズームスライダー
-          Positioned(
-            bottom: bottom + 20,
-            left: 16,
-            right: 160,
-            child: _buildZoomSlider(),
-          ),
-
-          // 右下: 占いアイコン + 着せ替えアイコン
+          // 下部: ズームスライダー ＋ ミラートグル
           Positioned(
             bottom: bottom + 16,
+            left: 16,
             right: 16,
-            child: _buildBottomRightIcons(l),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(child: _buildZoomSlider()),
+                const SizedBox(width: 8),
+                _buildMirrorToggle(l),
+              ],
+            ),
           ),
         ],
       ),
@@ -261,74 +292,64 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
     return camera;
   }
 
-  Widget _buildBottomRightIcons(AppLocalizations l) {
+  Widget _buildTopRightIcons(AppLocalizations l) {
     final isReady = _bubbleState == _BubbleState.ready;
-    const iconSize = 56.0;
-    const gap = 4.0;
 
-    return Stack(
-      clipBehavior: Clip.none,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // アイコン2つのRow（幅: 56 + 4 + 56 = 116px）
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            // 着せ替えアイコン
-            GestureDetector(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CostumeScreen()),
-              ),
-              child: _buildIconCircle(
-                borderColor: const Color(0xFFCCA8E8),
-                bgColor: Colors.white,
-                child: const Icon(Icons.checkroom_rounded, color: Color(0xFF9B6DD6), size: 26),
-              ),
-            ),
-            const SizedBox(width: gap),
-            // 占いアイコン
-            GestureDetector(
-              onTap: isReady ? _goToResult : null,
-              child: AnimatedBuilder(
-                animation: _bounceAnim,
-                builder: (context, child) => Transform.translate(
-                  offset: isReady ? Offset(0, _bounceAnim.value) : Offset.zero,
-                  child: child,
-                ),
-                child: _buildIconCircle(
-                  borderColor: isReady ? const Color(0xFFFFB5D0) : const Color(0xFF999999),
-                  bgColor: isReady ? Colors.white : const Color(0xFFCCCCCC),
-                  child: ClipOval(
-                    child: Padding(
-                      padding: const EdgeInsets.all(6),
-                      child: ColorFiltered(
-                        colorFilter: isReady
-                            ? const ColorFilter.mode(Colors.transparent, BlendMode.dst)
-                            : const ColorFilter.matrix([
-                                0.2126, 0.7152, 0.0722, 0, 0,
-                                0.2126, 0.7152, 0.0722, 0, 0,
-                                0.2126, 0.7152, 0.0722, 0, 0,
-                                0,      0,      0,      1, 0,
-                              ]),
-                        child: Image.asset('assets/images/fortune.png', fit: BoxFit.contain),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        // 吹き出し: Stackの外側（上方）に絶対配置。レイアウト幅に影響させない
-        Positioned(
-          right: 0,
-          bottom: iconSize + 6,
-          child: GestureDetector(
+        // 吹き出し（占いアイコンの上、テール下向き）
+        if (_bubbleVisible)
+          GestureDetector(
             onTap: isReady ? _goToResult : null,
             child: _SpeechBubble(
               text: isReady ? l.get('fortune_done') : l.get('divining'),
               isReady: isReady,
             ),
+          ),
+        if (_bubbleVisible) const SizedBox(height: 6),
+        // 占いアイコン
+        GestureDetector(
+          onTap: isReady ? _goToResult : null,
+          child: AnimatedBuilder(
+            animation: _bounceAnim,
+            builder: (context, child) => Transform.translate(
+              offset: isReady ? Offset(0, _bounceAnim.value) : Offset.zero,
+              child: child,
+            ),
+            child: _buildIconCircle(
+              borderColor: isReady ? const Color(0xFFFFB5D0) : const Color(0xFF999999),
+              bgColor: isReady ? Colors.white : const Color(0xFFCCCCCC),
+              child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: ColorFiltered(
+                    colorFilter: isReady
+                        ? const ColorFilter.mode(Colors.transparent, BlendMode.dst)
+                        : const ColorFilter.matrix([
+                            0.2126, 0.7152, 0.0722, 0, 0,
+                            0.2126, 0.7152, 0.0722, 0, 0,
+                            0.2126, 0.7152, 0.0722, 0, 0,
+                            0,      0,      0,      1, 0,
+                          ]),
+                    child: Image.asset('assets/images/fortune.png', fit: BoxFit.contain),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        // 着せ替えアイコン
+        GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CostumeScreen()),
+          ),
+          child: _buildIconCircle(
+            borderColor: const Color(0xFFCCA8E8),
+            bgColor: Colors.white,
+            child: const Icon(Icons.checkroom_rounded, color: Color(0xFF9B6DD6), size: 26),
           ),
         ),
       ],
@@ -361,7 +382,7 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
 
   Widget _buildZoomSlider() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.black.withAlpha(130),
         borderRadius: BorderRadius.circular(20),
@@ -396,7 +417,7 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
 
   Widget _buildBrightnessSlider() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.black.withAlpha(130),
         borderRadius: BorderRadius.circular(20),
@@ -638,7 +659,7 @@ class _SpeechBubble extends StatelessWidget {
             ),
           ),
         ),
-        // 三角テイル（アイコン中心に合わせて right: 22 = アイコン半径 28px から右端）
+        // 三角テイル（下向き）
         Positioned(
           bottom: -7,
           right: 22,

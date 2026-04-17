@@ -41,6 +41,8 @@ class Fortune {
         'moneyComment': moneyComment,
         'dailyMessage': dailyMessage,
         'expression': expression.name,
+        'imagePath': imagePath,
+        if (backgroundPath != null) 'backgroundPath': backgroundPath,
       };
 
   factory Fortune.fromJson(Map<String, dynamic> json) => Fortune(
@@ -58,7 +60,7 @@ class Fortune {
           (e) => e.name == json['expression'],
           orElse: () => HamsterExpression.normal,
         ),
-        imagePath: (json['imagePath'] as String?) ?? 'assets/images/rabbits/default/rabbit_01.png',
+        imagePath: (json['imagePath'] as String?) ?? 'assets/images/rabbits/default/rabbit_normal.png',
         backgroundPath: json['backgroundPath'] as String?,
       );
 }
