@@ -6,6 +6,7 @@ import '../providers/costume_provider.dart';
 import '../providers/progress_provider.dart';
 import '../models/fortune.dart';
 import '../utils/fortune_translations.dart';
+import '../providers/iap_provider.dart';
 import 'costume_screen.dart';
 
 // ─── UI Constants ─────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ class _FortuneResultScreenState extends ConsumerState<FortuneResultScreen> {
   Widget build(BuildContext context) {
     final fortune = ref.watch(fortuneProvider);
     final costume = ref.watch(costumeProvider);
+    final iap = ref.watch(iapProvider);
     final l = AppLocalizations.of(context);
 
     if (fortune == null) {
@@ -108,8 +110,15 @@ class _FortuneResultScreenState extends ConsumerState<FortuneResultScreen> {
                               const SizedBox(height: 10),
                               _CommentCard(fortune: fortune, narrow: narrow, l: l),
                               const SizedBox(height: 12),
-                              // 動画広告ボタン（プレースホルダー）
-                              _WatchAdButton(l: l),
+                              if (iap.isPremium)
+                                _ReDivineButton(
+                                  l: l,
+                                  onTap: () async {
+                                    await ref.read(fortuneProvider.notifier).generateAndSaveFortune();
+                                  },
+                                )
+                              else
+                                _WatchAdButton(l: l),
                               const SizedBox(height: 10),
                               _NavButtons(
                                 l: l,
@@ -484,6 +493,35 @@ class _NavButtons extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── Re-divine button (premium) ──────────────────────────────────────────────
+class _ReDivineButton extends StatelessWidget {
+  const _ReDivineButton({required this.l, required this.onTap});
+  final AppLocalizations l;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 44,
+      child: ElevatedButton.icon(
+        onPressed: onTap,
+        icon: const Icon(Icons.auto_awesome, size: 16),
+        label: Text(
+          l.get('redivine'),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF9B6DD6),
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          elevation: 3,
+        ),
+      ),
     );
   }
 }

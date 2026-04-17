@@ -40,11 +40,18 @@ class AppLocalizations {
       'costume_dress': 'ドレス',
       // Menu
       'menu_premium': 'プレミアム',
-      'menu_premium_desc': '占い無制限・全コスチューム解放',
+      'menu_premium_desc': '占い無制限・広告なし',
       'menu_premium_unavailable': '課金機能は近日公開予定です',
       'menu_language': '言語',
       'lang_ja': '日本語',
       'lang_en': 'English',
+      // IAP
+      'redivine': 'もう一度占う',
+      'premium_subscribe': 'プレミアムに登録',
+      'premium_restore': '購入を復元',
+      'premium_loading': '処理中...',
+      'premium_already': 'プレミアム会員です',
+      'premium_active_badge': 'PREMIUM',
     },
     'en': {
       'mirror': 'Mirror',
@@ -67,11 +74,18 @@ class AppLocalizations {
       'costume_carrot': 'Carrot',
       'costume_dress': 'Dress',
       'menu_premium': 'Premium',
-      'menu_premium_desc': 'Unlimited fortunes & all costumes',
+      'menu_premium_desc': 'Unlimited fortunes & no ads',
       'menu_premium_unavailable': 'Purchase feature coming soon',
       'menu_language': 'Language',
       'lang_ja': '日本語',
       'lang_en': 'English',
+      // IAP
+      'redivine': 'Divine Again',
+      'premium_subscribe': 'Subscribe to Premium',
+      'premium_restore': 'Restore Purchases',
+      'premium_loading': 'Processing...',
+      'premium_already': "You're a Premium Member",
+      'premium_active_badge': 'PREMIUM',
     },
   };
 

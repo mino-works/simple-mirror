@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/locale_provider.dart';
+import '../providers/iap_provider.dart';
 
 class MenuDrawer extends ConsumerWidget {
   const MenuDrawer({super.key});
@@ -9,6 +10,7 @@ class MenuDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeProvider);
+    final iap = ref.watch(iapProvider);
     final l = AppLocalizations.of(context);
 
     return Drawer(
@@ -43,16 +45,47 @@ class MenuDrawer extends ConsumerWidget {
 
               // ── プレミアム ──
               _SectionHeader(title: l.get('menu_premium')),
-              _MenuItem(
-                icon: Icons.star_rounded,
-                iconColor: const Color(0xFFFFCC00),
-                title: l.get('menu_premium'),
-                subtitle: l.get('menu_premium_desc'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showComingSoon(context, l.get('menu_premium_unavailable'));
-                },
-              ),
+              if (iap.isPremium)
+                _MenuItem(
+                  icon: Icons.star_rounded,
+                  iconColor: const Color(0xFFFFCC00),
+                  title: l.get('premium_active_badge'),
+                  subtitle: l.get('premium_already'),
+                  onTap: () {},
+                )
+              else
+                _MenuItem(
+                  icon: Icons.star_rounded,
+                  iconColor: const Color(0xFFFFCC00),
+                  title: iap.isLoading ? l.get('premium_loading') : l.get('premium_subscribe'),
+                  subtitle: iap.product != null
+                      ? iap.product!.price
+                      : l.get('menu_premium_desc'),
+                  onTap: iap.isLoading
+                      ? () {}
+                      : () async {
+                          if (iap.product == null) {
+                            _showSnackbar(context, l.get('menu_premium_unavailable'));
+                            return;
+                          }
+                          await ref.read(iapProvider.notifier).purchase();
+                        },
+                ),
+              if (!iap.isPremium)
+                Padding(
+                  padding: const EdgeInsets.only(left: 20, bottom: 4),
+                  child: GestureDetector(
+                    onTap: () => ref.read(iapProvider.notifier).restore(),
+                    child: Text(
+                      l.get('premium_restore'),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF9B6DD6),
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 8),
               const Divider(color: Color(0xFFFFCCDD), thickness: 1, height: 1),
               const SizedBox(height: 8),
@@ -76,7 +109,7 @@ class MenuDrawer extends ConsumerWidget {
     );
   }
 
-  void _showComingSoon(BuildContext context, String message) {
+  void _showSnackbar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
