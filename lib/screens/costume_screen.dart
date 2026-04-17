@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../l10n/app_localizations.dart';
 import '../models/costume.dart';
 import '../providers/costume_provider.dart';
+import '../providers/progress_provider.dart';
 
 class CostumeScreen extends ConsumerWidget {
   const CostumeScreen({super.key});
@@ -12,6 +14,8 @@ class CostumeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(costumeProvider);
+    final progress = ref.watch(progressProvider);
+    final l = AppLocalizations.of(context);
 
     return Scaffold(
       body: Container(
@@ -19,22 +23,18 @@ class CostumeScreen extends ConsumerWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFFD6E7),
-              Color(0xFFFFF0F8),
-              Colors.white,
-            ],
+            colors: [Color(0xFFFFD6E7), Color(0xFFFFF0F8), Colors.white],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
               const SizedBox(height: 24),
-              _buildTitle(),
+              _buildTitle(l),
               const SizedBox(height: 6),
-              const Text(
-                'あなたのウサギをおしゃれに',
-                style: TextStyle(
+              Text(
+                l.get('outfits_subtitle'),
+                style: const TextStyle(
                   color: Color(0xFF9B6DD6),
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -50,14 +50,28 @@ class CostumeScreen extends ConsumerWidget {
                     mainAxisSpacing: 16,
                     childAspectRatio: 0.8,
                     children: [
-                      ..._available.map((c) => _CostumeCard(
+                      ..._available.map((c) {
+                        final isUnlocked = progress.totalDays >= c.unlockDays;
+                        final daysLeft = c.unlockDays - progress.totalDays;
+
+                        if (isUnlocked) {
+                          return _CostumeCard(
                             costume: c,
+                            label: l.get(c.labelKey),
                             isSelected: selected == c,
                             onTap: () => ref.read(costumeProvider.notifier).select(c),
-                          )),
+                          );
+                        } else {
+                          return _LockedCard(
+                            costume: c,
+                            daysLeft: daysLeft,
+                            daysLeftText: l.daysLeft(daysLeft),
+                          );
+                        }
+                      }),
                       ...List.generate(
                         _comingSoonCount,
-                        (_) => const _ComingSoonCard(),
+                        (_) => _ComingSoonCard(label: l.get('coming_soon')),
                       ),
                     ],
                   ),
@@ -78,9 +92,9 @@ class CostumeScreen extends ConsumerWidget {
                       shadowColor: const Color(0x66FF6E99),
                       padding: const EdgeInsets.symmetric(horizontal: 48),
                     ),
-                    child: const Text(
-                      'もどる',
-                      style: TextStyle(
+                    child: Text(
+                      l.get('back'),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -96,36 +110,39 @@ class CostumeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTitle() {
+  Widget _buildTitle(AppLocalizations l) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
-        Icon(Icons.auto_awesome, color: Color(0xFFFFCC00), size: 20),
-        SizedBox(width: 10),
+      children: [
+        const Icon(Icons.auto_awesome, color: Color(0xFFFFCC00), size: 20),
+        const SizedBox(width: 10),
         Text(
-          'きせかえ',
-          style: TextStyle(
+          l.get('outfits_title'),
+          style: const TextStyle(
             color: Color(0xFF5D3A1A),
             fontSize: 28,
             fontWeight: FontWeight.w900,
             letterSpacing: 2,
           ),
         ),
-        SizedBox(width: 10),
-        Icon(Icons.auto_awesome, color: Color(0xFFFFCC00), size: 20),
+        const SizedBox(width: 10),
+        const Icon(Icons.auto_awesome, color: Color(0xFFFFCC00), size: 20),
       ],
     );
   }
 }
 
+// ── 解放済みコスチュームカード ──────────────────────────────────
 class _CostumeCard extends StatelessWidget {
   const _CostumeCard({
     required this.costume,
+    required this.label,
     required this.isSelected,
     required this.onTap,
   });
 
   final Costume costume;
+  final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -149,19 +166,9 @@ class _CostumeCard extends StatelessWidget {
                     blurRadius: 16,
                     spreadRadius: 2,
                   ),
-                  BoxShadow(
-                    color: Colors.black.withAlpha(15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
+                  BoxShadow(color: Colors.black.withAlpha(15), blurRadius: 8, offset: const Offset(0, 3)),
                 ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(10),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+              : [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 6, offset: const Offset(0, 2))],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -172,11 +179,8 @@ class _CostumeCard extends StatelessWidget {
                 child: Image.asset(
                   costume.previewImage,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) => Icon(
-                    Icons.pets,
-                    size: 60,
-                    color: isSelected ? const Color(0xFF9B6DD6) : const Color(0xFFCCAADD),
-                  ),
+                  errorBuilder: (_, _, _) => Icon(Icons.pets, size: 60,
+                      color: isSelected ? const Color(0xFF9B6DD6) : const Color(0xFFCCAADD)),
                 ),
               ),
             ),
@@ -188,14 +192,10 @@ class _CostumeCard extends StatelessWidget {
                   if (isSelected)
                     const Padding(
                       padding: EdgeInsets.only(right: 4),
-                      child: Icon(
-                        Icons.check_circle,
-                        color: Color(0xFFFFD700),
-                        size: 16,
-                      ),
+                      child: Icon(Icons.check_circle, color: Color(0xFFFFD700), size: 16),
                     ),
                   Text(
-                    costume.label,
+                    label,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
@@ -212,8 +212,69 @@ class _CostumeCard extends StatelessWidget {
   }
 }
 
+// ── ロック中（次に解放）カード ─────────────────────────────────
+class _LockedCard extends StatelessWidget {
+  const _LockedCard({
+    required this.costume,
+    required this.daysLeft,
+    required this.daysLeftText,
+  });
+
+  final Costume costume;
+  final int daysLeft;
+  final String daysLeftText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF0F5),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFFFCCDD), width: 1.5),
+        boxShadow: [BoxShadow(color: Colors.black.withAlpha(10), blurRadius: 6, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: ColorFiltered(
+                colorFilter: const ColorFilter.matrix([
+                  0.2126, 0.7152, 0.0722, 0, 0,
+                  0.2126, 0.7152, 0.0722, 0, 0,
+                  0.2126, 0.7152, 0.0722, 0, 0,
+                  0,      0,      0,      0.5, 0,
+                ]),
+                child: Image.asset(
+                  costume.previewImage,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, _, _) => const Icon(Icons.pets, size: 60, color: Color(0xFFCCAADD)),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: Text(
+              daysLeftText,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF9B6DD6),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Coming soon カード ─────────────────────────────────────────
 class _ComingSoonCard extends StatelessWidget {
-  const _ComingSoonCard();
+  const _ComingSoonCard({required this.label});
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -222,26 +283,16 @@ class _ComingSoonCard extends StatelessWidget {
         color: const Color(0xFFFFF8FC),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFEECCDD), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 6, offset: const Offset(0, 2))],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.lock_outline_rounded,
-            size: 40,
-            color: const Color(0xFFCCAACC).withAlpha(180),
-          ),
+          Icon(Icons.lock_outline_rounded, size: 40, color: const Color(0xFFCCAACC).withAlpha(180)),
           const SizedBox(height: 12),
-          const Text(
-            'Coming soon',
-            style: TextStyle(
+          Text(
+            label,
+            style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: Color(0xFFBB99BB),

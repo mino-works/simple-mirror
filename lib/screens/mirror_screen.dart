@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/fortune_provider.dart';
+import '../providers/progress_provider.dart';
 import '../utils/fortune_generator.dart';
 import 'fortune_result_screen.dart';
 import 'costume_screen.dart';
+import 'menu_drawer.dart';
 
 enum _BubbleState { inProgress, ready }
 
@@ -18,6 +21,7 @@ class MirrorScreen extends ConsumerStatefulWidget {
 
 class _MirrorScreenState extends ConsumerState<MirrorScreen>
     with TickerProviderStateMixin {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   CameraController? _controller;
   _BubbleState _bubbleState = _BubbleState.inProgress;
   bool _isMirrorMode = true;
@@ -158,14 +162,18 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
     final bottom = MediaQuery.of(context).padding.bottom;
+    final l = AppLocalizations.of(context);
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.black,
+      drawer: const MenuDrawer(),
       body: Stack(
         children: [
           // カメラ映像（全画面）
           Positioned.fill(child: _buildCameraPreview()),
 
-          // 上部: 明るさスライダー ＋ ミラートグルを同じ行に配置
+          // 上部: ハンバーガー ＋ 明るさスライダー ＋ ミラートグル
           Positioned(
             top: top + 16,
             left: 16,
@@ -173,9 +181,11 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                _buildHamburgerButton(),
+                const SizedBox(width: 8),
                 Expanded(child: _buildBrightnessSlider()),
                 const SizedBox(width: 8),
-                _buildMirrorToggle(),
+                _buildMirrorToggle(l),
               ],
             ),
           ),
@@ -187,7 +197,7 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
             child: _buildDebugButton(),
           ),
 
-          // 左下: ズームスライダー（明るさスライダーと同じ長さ）
+          // 左下: ズームスライダー
           Positioned(
             bottom: bottom + 20,
             left: 16,
@@ -199,9 +209,25 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
           Positioned(
             bottom: bottom + 16,
             right: 16,
-            child: _buildBottomRightIcons(),
+            child: _buildBottomRightIcons(l),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHamburgerButton() {
+    return GestureDetector(
+      onTap: () => _scaffoldKey.currentState?.openDrawer(),
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: Colors.black.withAlpha(130),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withAlpha(60), width: 1),
+        ),
+        child: const Icon(Icons.menu_rounded, color: Colors.white, size: 18),
       ),
     );
   }
@@ -235,7 +261,7 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
     return camera;
   }
 
-  Widget _buildBottomRightIcons() {
+  Widget _buildBottomRightIcons(AppLocalizations l) {
     final isReady = _bubbleState == _BubbleState.ready;
     const iconSize = 56.0;
     const gap = 4.0;
@@ -300,7 +326,7 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
           child: GestureDetector(
             onTap: isReady ? _goToResult : null,
             child: _SpeechBubble(
-              text: isReady ? '占い完了！' : '占い中...',
+              text: isReady ? l.get('fortune_done') : l.get('divining'),
               isReady: isReady,
             ),
           ),
@@ -428,65 +454,107 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
     final fortunes = FortuneGenerator.getAllFortunes();
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: const Color(0xFF1E1E2E),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 14),
-              child: Text(
-                '結果画面を選択（デバッグ用）',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
+        child: Consumer(
+          builder: (ctx, r, _) {
+            final progress = r.watch(progressProvider);
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ── ログイン日数セクション ──
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+                  child: Row(
+                    children: [
+                      Text(
+                        '📅 累計ログイン日数: ${progress.totalDays}日',
+                        style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-            const Divider(color: Colors.white24, height: 1),
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: fortunes.length,
-                separatorBuilder: (_, _) => const Divider(color: Colors.white12, height: 1),
-                itemBuilder: (_, i) {
-                  final f = fortunes[i];
-                  return ListTile(
-                    dense: true,
-                    leading: Text(
-                      '${i + 1}',
-                      style: const TextStyle(color: Colors.white38, fontSize: 12),
-                    ),
-                    title: Text(
-                      f.overallTitle,
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
-                    ),
-                    subtitle: Text(
-                      '総合${f.overallLuck} / 恋${f.loveLuck} / 金${f.moneyLuck} / 仕${f.workLuck}',
-                      style: const TextStyle(color: Colors.white54, fontSize: 11),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      ref.read(fortuneProvider.notifier).setFortune(f);
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const FortuneResultScreen()),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                  child: Row(
+                    children: [
+                      _debugDayBtn('+1日', () => r.read(progressProvider.notifier).debugAddDays(1)),
+                      const SizedBox(width: 8),
+                      _debugDayBtn('+7日', () => r.read(progressProvider.notifier).debugAddDays(7)),
+                      const SizedBox(width: 8),
+                      _debugDayBtn('+14日', () => r.read(progressProvider.notifier).debugAddDays(14)),
+                      const SizedBox(width: 8),
+                      _debugDayBtn('リセット', () => r.read(progressProvider.notifier).debugResetDays(),
+                          color: Colors.redAccent),
+                    ],
+                  ),
+                ),
+                const Divider(color: Colors.white24, height: 1),
+                // ── 占い選択セクション ──
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: Text(
+                    '結果画面を選択',
+                    style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
+                ),
+                const Divider(color: Colors.white24, height: 1),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: fortunes.length,
+                    separatorBuilder: (_, _) => const Divider(color: Colors.white12, height: 1),
+                    itemBuilder: (_, i) {
+                      final f = fortunes[i];
+                      return ListTile(
+                        dense: true,
+                        leading: Text('${i + 1}',
+                            style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                        title: Text(f.overallTitle,
+                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+                        subtitle: Text(
+                          '総合${f.overallLuck} / 恋${f.loveLuck} / 金${f.moneyLuck} / 仕${f.workLuck}',
+                          style: const TextStyle(color: Colors.white54, fontSize: 11),
+                        ),
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          ref.read(fortuneProvider.notifier).setFortune(f);
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const FortuneResultScreen()),
+                          );
+                        },
                       );
                     },
-                  );
-                },
-              ),
-            ),
-          ],
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildMirrorToggle() {
+  Widget _debugDayBtn(String label, VoidCallback onTap, {Color color = Colors.orange}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withAlpha(180),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(label,
+            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+      ),
+    );
+  }
+
+  Widget _buildMirrorToggle(AppLocalizations l) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.black.withAlpha(130),
@@ -496,16 +564,17 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildToggleOption('ミラー', _isMirrorMode),
-          _buildToggleOption('他人から', !_isMirrorMode),
+          _buildToggleOption(l.get('mirror'), isMirrorMode: true),
+          _buildToggleOption(l.get('others_view'), isMirrorMode: false),
         ],
       ),
     );
   }
 
-  Widget _buildToggleOption(String label, bool isActive) {
+  Widget _buildToggleOption(String label, {required bool isMirrorMode}) {
+    final isActive = _isMirrorMode == isMirrorMode;
     return GestureDetector(
-      onTap: () => setState(() => _isMirrorMode = label == 'ミラー'),
+      onTap: () => setState(() => _isMirrorMode = isMirrorMode),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

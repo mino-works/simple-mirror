@@ -3,14 +3,27 @@ enum Costume {
   carrot,
   dress;
 
-  String get label {
+  /// ローカライズキー
+  String get labelKey {
     switch (this) {
       case Costume.normal:
-        return 'ノーマル';
+        return 'costume_normal';
       case Costume.carrot:
-        return '人参コスプレ';
+        return 'costume_carrot';
       case Costume.dress:
-        return 'ドレス';
+        return 'costume_dress';
+    }
+  }
+
+  /// 解放に必要な累計ログイン日数（0 = 最初から利用可能）
+  int get unlockDays {
+    switch (this) {
+      case Costume.normal:
+        return 0;
+      case Costume.carrot:
+        return 7;
+      case Costume.dress:
+        return 14;
     }
   }
 
@@ -27,7 +40,6 @@ enum Costume {
 
   String get previewImage => '$directory/rabbit_star.png';
 
-  /// basePath（defaultのパス）をこのコスチュームのパスに変換する
   String applyTo(String basePath) {
     if (this == Costume.normal) return basePath;
     final fileName = basePath.split('/').last;

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/fortune_provider.dart';
 import '../providers/costume_provider.dart';
+import '../providers/progress_provider.dart';
 import '../models/fortune.dart';
+import '../utils/fortune_translations.dart';
 import 'costume_screen.dart';
 
 // ─── UI Constants ─────────────────────────────────────────────────────────────
@@ -40,13 +43,29 @@ abstract class _C {
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
-class FortuneResultScreen extends ConsumerWidget {
+class FortuneResultScreen extends ConsumerStatefulWidget {
   const FortuneResultScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FortuneResultScreen> createState() => _FortuneResultScreenState();
+}
+
+class _FortuneResultScreenState extends ConsumerState<FortuneResultScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // 占い結果を見た日として記録（累計ログイン日数カウント）
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(progressProvider.notifier).recordFortuneView();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final fortune = ref.watch(fortuneProvider);
     final costume = ref.watch(costumeProvider);
+    final l = AppLocalizations.of(context);
+
     if (fortune == null) {
       return const Scaffold(body: Center(child: Text('占いデータがありません')));
     }
@@ -70,11 +89,9 @@ class FortuneResultScreen extends ConsumerWidget {
               return SingleChildScrollView(
                 child: Stack(
                   children: [
-                    // ── 縦並びレイアウト ──
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // 上部 60%: 背景＋ウサギ
                         SizedBox(
                           height: heroH,
                           child: _RabbitHero(
@@ -82,24 +99,20 @@ class FortuneResultScreen extends ConsumerWidget {
                             backgroundPath: fortune.backgroundPath,
                           ),
                         ),
-                        // 下部: 白背景・上角丸（高さ固定なし・コンテンツに合わせる）
                         Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                          ),
-                          padding: EdgeInsets.fromLTRB(
-                            hPad,
-                            _C.titleOverlap + 12, // タイトルプレート重なり分を確保
-                            hPad,
-                            24,
-                          ),
+                          decoration: const BoxDecoration(color: Colors.white),
+                          padding: EdgeInsets.fromLTRB(hPad, _C.titleOverlap + 12, hPad, 24),
                           child: Column(
                             children: [
-                              _FortuneCardsRow(fortune: fortune, narrow: narrow),
+                              _FortuneCardsRow(fortune: fortune, narrow: narrow, l: l),
                               const SizedBox(height: 10),
-                              _CommentCard(fortune: fortune, narrow: narrow),
+                              _CommentCard(fortune: fortune, narrow: narrow, l: l),
                               const SizedBox(height: 12),
+                              // 動画広告ボタン（プレースホルダー）
+                              _WatchAdButton(l: l),
+                              const SizedBox(height: 10),
                               _NavButtons(
+                                l: l,
                                 onMirror: () => Navigator.of(context).pop(),
                                 onCostume: () => Navigator.of(context).push(
                                   MaterialPageRoute(builder: (_) => const CostumeScreen()),
@@ -110,14 +123,11 @@ class FortuneResultScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    // ── タイトルプレート: ヒーローと白背景の境界に重ねる ──
                     Positioned(
                       top: heroH - _C.titleOverlap,
                       left: 0,
                       right: 0,
-                      child: Center(
-                        child: _TitlePlate(title: fortune.overallTitle),
-                      ),
+                      child: Center(child: _TitlePlate(title: FortuneTranslations.title(fortune.overallTitle, l.locale.languageCode))),
                     ),
                   ],
                 ),
@@ -216,9 +226,10 @@ class _TitlePlate extends StatelessWidget {
 
 // ─── Fortune cards row ────────────────────────────────────────────────────────
 class _FortuneCardsRow extends StatelessWidget {
-  const _FortuneCardsRow({required this.fortune, required this.narrow});
+  const _FortuneCardsRow({required this.fortune, required this.narrow, required this.l});
   final Fortune fortune;
   final bool narrow;
+  final AppLocalizations l;
 
   static int _toStars(int value) => (value / 20).round().clamp(1, 5);
 
@@ -230,7 +241,7 @@ class _FortuneCardsRow extends StatelessWidget {
         Expanded(
           child: _FortuneCard(
             iconPath: _C.iconLove,
-            label: '恋愛運',
+            label: l.get('love'),
             stars: _toStars(fortune.loveLuck),
             bgColor: _C.loveCard,
             narrow: narrow,
@@ -240,7 +251,7 @@ class _FortuneCardsRow extends StatelessWidget {
         Expanded(
           child: _FortuneCard(
             iconPath: _C.iconMoney,
-            label: '金運',
+            label: l.get('money'),
             stars: _toStars(fortune.moneyLuck),
             bgColor: _C.moneyCard,
             narrow: narrow,
@@ -250,7 +261,7 @@ class _FortuneCardsRow extends StatelessWidget {
         Expanded(
           child: _FortuneCard(
             iconPath: _C.iconWork,
-            label: '仕事運',
+            label: l.get('work'),
             stars: _toStars(fortune.workLuck),
             bgColor: _C.workCard,
             narrow: narrow,
@@ -350,9 +361,10 @@ class _FortuneCard extends StatelessWidget {
 
 // ─── Comment card ─────────────────────────────────────────────────────────────
 class _CommentCard extends StatelessWidget {
-  const _CommentCard({required this.fortune, required this.narrow});
+  const _CommentCard({required this.fortune, required this.narrow, required this.l});
   final Fortune fortune;
   final bool narrow;
+  final AppLocalizations l;
 
   @override
   Widget build(BuildContext context) {
@@ -390,7 +402,7 @@ class _CommentCard extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                '占い師ウサギのひとこと',
+                l.get('rabbit_message'),
                 style: TextStyle(
                   fontSize: titleSize,
                   fontWeight: FontWeight.w800,
@@ -408,7 +420,7 @@ class _CommentCard extends StatelessWidget {
           const SizedBox(height: 6),
           // 本文
           Text(
-            fortune.dailyMessage,
+            FortuneTranslations.message(fortune.dailyMessage, fortune.overallTitle, l.locale.languageCode),
             style: TextStyle(
               fontSize: bodySize,
               fontWeight: FontWeight.w500,
@@ -426,16 +438,16 @@ class _CommentCard extends StatelessWidget {
 
 // ─── Navigation buttons ───────────────────────────────────────────────────────
 class _NavButtons extends StatelessWidget {
-  const _NavButtons({required this.onMirror, required this.onCostume});
+  const _NavButtons({required this.onMirror, required this.onCostume, required this.l});
   final VoidCallback onMirror;
   final VoidCallback onCostume;
+  final AppLocalizations l;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // 鏡に戻る
         SizedBox(
           width: 130,
           height: 44,
@@ -447,14 +459,13 @@ class _NavButtons extends StatelessWidget {
               elevation: 4,
               shadowColor: _C.closeShadow,
             ),
-            child: const Text(
-              '鏡に戻る',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+            child: Text(
+              l.get('back_to_mirror'),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
             ),
           ),
         ),
         const SizedBox(width: 12),
-        // 着せ替え
         SizedBox(
           width: 130,
           height: 44,
@@ -466,13 +477,49 @@ class _NavButtons extends StatelessWidget {
               elevation: 4,
               shadowColor: const Color(0x669B6DD6),
             ),
-            child: const Text(
-              '着せ替え',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+            child: Text(
+              l.get('outfit'),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── Watch ad button (placeholder) ───────────────────────────────────────────
+class _WatchAdButton extends StatelessWidget {
+  const _WatchAdButton({required this.l});
+  final AppLocalizations l;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 44,
+      child: OutlinedButton.icon(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l.get('watch_ad_unavailable')),
+              backgroundColor: const Color(0xFF9B6DD6),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          );
+        },
+        icon: const Icon(Icons.play_circle_outline_rounded, size: 18),
+        label: Text(
+          l.get('watch_ad'),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFF9B6DD6),
+          side: const BorderSide(color: Color(0xFFCCA8E8), width: 1.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        ),
+      ),
     );
   }
 }
