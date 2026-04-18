@@ -6,8 +6,8 @@ import '../l10n/app_localizations.dart';
 import '../providers/fortune_provider.dart';
 import '../providers/fortune_count_provider.dart';
 import '../providers/iap_provider.dart';
-import '../providers/progress_provider.dart';
-import '../utils/fortune_generator.dart';
+// import '../providers/progress_provider.dart'; // デバッグ用
+// import '../utils/fortune_generator.dart'; // デバッグ用
 import 'fortune_result_screen.dart';
 import 'costume_screen.dart';
 import 'menu_drawer.dart';
@@ -222,11 +222,11 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
           ),
 
           // デバッグボタン（明るさスライダーの下）
-          Positioned(
-            top: top + 70,
-            left: 16,
-            child: _buildDebugButton(),
-          ),
+          // Positioned(
+          //   top: top + 70,
+          //   left: 16,
+          //   child: _buildDebugButton(),
+          // ),
 
           // 下部: ズームスライダー ＋ ミラートグル
           Positioned(
@@ -454,130 +454,108 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
     );
   }
 
-  Widget _buildDebugButton() {
-    return GestureDetector(
-      onTap: () => _showDebugFortuneSheet(),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.orange.withAlpha(200),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Text(
-          'TEST',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
-    );
-  }
+  // ── デバッグ用（リリース時はコメントアウト） ─────────────────
+  // Widget _buildDebugButton() {
+  //   return GestureDetector(
+  //     onTap: () => _showDebugFortuneSheet(),
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+  //       decoration: BoxDecoration(
+  //         color: Colors.orange.withAlpha(200),
+  //         borderRadius: BorderRadius.circular(12),
+  //       ),
+  //       child: const Text(
+  //         'TEST',
+  //         style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  void _showDebugFortuneSheet() {
-    final fortunes = FortuneGenerator.getAllFortunes();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E1E2E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => SafeArea(
-        child: Consumer(
-          builder: (ctx, r, _) {
-            final progress = r.watch(progressProvider);
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // ── ログイン日数セクション ──
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-                  child: Row(
-                    children: [
-                      Text(
-                        '📅 累計ログイン日数: ${progress.totalDays}日',
-                        style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w700),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                  child: Row(
-                    children: [
-                      _debugDayBtn('+1日', () => r.read(progressProvider.notifier).debugAddDays(1)),
-                      const SizedBox(width: 8),
-                      _debugDayBtn('+7日', () => r.read(progressProvider.notifier).debugAddDays(7)),
-                      const SizedBox(width: 8),
-                      _debugDayBtn('+14日', () => r.read(progressProvider.notifier).debugAddDays(14)),
-                      const SizedBox(width: 8),
-                      _debugDayBtn('リセット', () => r.read(progressProvider.notifier).debugResetDays(),
-                          color: Colors.redAccent),
-                    ],
-                  ),
-                ),
-                const Divider(color: Colors.white24, height: 1),
-                // ── 占い選択セクション ──
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  child: Text(
-                    '結果画面を選択',
-                    style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w700),
-                  ),
-                ),
-                const Divider(color: Colors.white24, height: 1),
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: fortunes.length,
-                    separatorBuilder: (_, _) => const Divider(color: Colors.white12, height: 1),
-                    itemBuilder: (_, i) {
-                      final f = fortunes[i];
-                      return ListTile(
-                        dense: true,
-                        leading: Text('${i + 1}',
-                            style: const TextStyle(color: Colors.white38, fontSize: 12)),
-                        title: Text(f.overallTitle,
-                            style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
-                        subtitle: Text(
-                          '総合${f.overallLuck} / 恋${f.loveLuck} / 金${f.moneyLuck} / 仕${f.workLuck}',
-                          style: const TextStyle(color: Colors.white54, fontSize: 11),
-                        ),
-                        onTap: () {
-                          Navigator.pop(ctx);
-                          ref.read(fortuneProvider.notifier).setFortune(f);
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const FortuneResultScreen()),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
+  // void _showDebugFortuneSheet() {
+  //   final fortunes = FortuneGenerator.getAllFortunes();
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: const Color(0xFF1E1E2E),
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  //     ),
+  //     builder: (_) => SafeArea(
+  //       child: Consumer(
+  //         builder: (ctx, r, _) {
+  //           final progress = r.watch(progressProvider);
+  //           return Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Padding(
+  //                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+  //                 child: Row(children: [
+  //                   Text('📅 累計ログイン日数: ${progress.totalDays}日',
+  //                       style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w700)),
+  //                 ]),
+  //               ),
+  //               Padding(
+  //                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+  //                 child: Row(children: [
+  //                   _debugDayBtn('+1日', () => r.read(progressProvider.notifier).debugAddDays(1)),
+  //                   const SizedBox(width: 8),
+  //                   _debugDayBtn('+7日', () => r.read(progressProvider.notifier).debugAddDays(7)),
+  //                   const SizedBox(width: 8),
+  //                   _debugDayBtn('+14日', () => r.read(progressProvider.notifier).debugAddDays(14)),
+  //                   const SizedBox(width: 8),
+  //                   _debugDayBtn('リセット', () => r.read(progressProvider.notifier).debugResetDays(), color: Colors.redAccent),
+  //                 ]),
+  //               ),
+  //               const Divider(color: Colors.white24, height: 1),
+  //               const Padding(
+  //                 padding: EdgeInsets.symmetric(vertical: 10),
+  //                 child: Text('結果画面を選択',
+  //                     style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w700)),
+  //               ),
+  //               const Divider(color: Colors.white24, height: 1),
+  //               Flexible(
+  //                 child: ListView.separated(
+  //                   shrinkWrap: true,
+  //                   itemCount: fortunes.length,
+  //                   separatorBuilder: (_, _) => const Divider(color: Colors.white12, height: 1),
+  //                   itemBuilder: (_, i) {
+  //                     final f = fortunes[i];
+  //                     return ListTile(
+  //                       dense: true,
+  //                       leading: Text('${i + 1}', style: const TextStyle(color: Colors.white38, fontSize: 12)),
+  //                       title: Text(f.overallTitle,
+  //                           style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+  //                       subtitle: Text('総合${f.overallLuck} / 恋${f.loveLuck} / 金${f.moneyLuck} / 仕${f.workLuck}',
+  //                           style: const TextStyle(color: Colors.white54, fontSize: 11)),
+  //                       onTap: () {
+  //                         Navigator.pop(ctx);
+  //                         ref.read(fortuneProvider.notifier).setFortune(f);
+  //                         Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FortuneResultScreen()));
+  //                       },
+  //                     );
+  //                   },
+  //                 ),
+  //               ),
+  //             ],
+  //           );
+  //         },
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _debugDayBtn(String label, VoidCallback onTap, {Color color = Colors.orange}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: color.withAlpha(180),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(label,
-            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
-      ),
-    );
-  }
+  // Widget _debugDayBtn(String label, VoidCallback onTap, {Color color = Colors.orange}) {
+  //   return GestureDetector(
+  //     onTap: onTap,
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+  //       decoration: BoxDecoration(color: color.withAlpha(180), borderRadius: BorderRadius.circular(10)),
+  //       child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+  //     ),
+  //   );
+  // }
+  // ────────────────────────────────────────────────────────────
 
   Widget _buildMirrorToggle(AppLocalizations l) {
     return Container(

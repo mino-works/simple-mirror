@@ -35,24 +35,24 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
     await prefs.setStringList(_key, updated.toList());
   }
 
-  // ── デバッグ用（リリース時は削除） ──────────────────────────
-  Future<void> debugAddDays(int n) async {
-    final base = DateTime.now();
-    final existing = {...state.loginDays};
-    for (var i = 1; i <= n; i++) {
-      final fake = base.subtract(Duration(days: i));
-      existing.add('${fake.year}-${fake.month.toString().padLeft(2, '0')}-${fake.day.toString().padLeft(2, '0')}');
-    }
-    state = ProgressState(loginDays: existing);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_key, existing.toList());
-  }
+  // ── デバッグ用（リリース時はコメントアウト） ─────────────────
+  // Future<void> debugAddDays(int n) async {
+  //   final base = DateTime.now();
+  //   final existing = {...state.loginDays};
+  //   for (var i = 1; i <= n; i++) {
+  //     final fake = base.subtract(Duration(days: i));
+  //     existing.add('${fake.year}-${fake.month.toString().padLeft(2, '0')}-${fake.day.toString().padLeft(2, '0')}');
+  //   }
+  //   state = ProgressState(loginDays: existing);
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.setStringList(_key, existing.toList());
+  // }
 
-  Future<void> debugResetDays() async {
-    state = const ProgressState(loginDays: {});
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key);
-  }
+  // Future<void> debugResetDays() async {
+  //   state = const ProgressState(loginDays: {});
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.remove(_key);
+  // }
   // ────────────────────────────────────────────────────────────
 }
 

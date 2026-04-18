@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 enum LegalType { terms, privacy }
 
 class LegalScreen extends StatelessWidget {
   const LegalScreen({super.key, required this.type});
   final LegalType type;
+
+  static const _privacyUrl =
+      'https://mino-works.github.io/simple-mirror/docs/privacy-policy.html';
 
   static const _termsJa = '''
 最終更新日：2026年4月18日
@@ -14,7 +18,7 @@ class LegalScreen extends StatelessWidget {
 ■ サービス内容
 本アプリは、カメラを使用したミラー機能および占いコンテンツを提供します。占い結果はエンターテインメント目的であり、正確性を保証するものではありません。
 
-■ 毎日プラン（サブスクリプション）
+■ 無制限プラン（サブスクリプション）
 ・料金：App Storeに表示される価格（月額）
 ・更新：各期間終了の24時間前に自動更新されます
 ・解約：App Store のサブスクリプション設定からいつでも解約できます
@@ -30,9 +34,6 @@ class LegalScreen extends StatelessWidget {
 
 ■ 規約の変更
 本規約は予告なく変更される場合があります。変更後も本アプリを継続して利用された場合、変更に同意したものとみなします。
-
-■ お問い合わせ
-minoapp.vegas.rel@gmail.com
 ''';
 
   static const _privacyJa = '''
@@ -66,9 +67,6 @@ Apple Inc. のサービスを通じた購入情報はAppleのプライバシー�
 
 ■ ポリシーの変更
 本ポリシーは予告なく更新される場合があります。
-
-■ お問い合わせ
-minoapp.vegas.rel@gmail.com
 ''';
 
   static const _termsEn = '''
@@ -79,7 +77,7 @@ These Terms of Service govern your use of Mirror Fortune (the "App").
 ■ Service Description
 The App provides a camera-based mirror feature and fortune-telling content. Fortune results are for entertainment purposes only and accuracy is not guaranteed.
 
-■ Daily Plan (Subscription)
+■ Unlimited Plan (Subscription)
 • Price: as shown in the App Store
 • Renewal: automatically renews 24 hours before the end of each period
 • Cancellation: cancel anytime via App Store subscription settings
@@ -95,9 +93,6 @@ Fortune results are for entertainment only. We are not liable for any actions ta
 
 ■ Changes to Terms
 These terms may be updated without notice. Continued use of the App after changes constitutes acceptance.
-
-■ Contact
-minoapp.vegas.rel@gmail.com
 ''';
 
   static const _privacyEn = '''
@@ -130,9 +125,6 @@ We do not knowingly collect personal information from children under 13.
 
 ■ Policy Changes
 This policy may be updated without notice.
-
-■ Contact
-minoapp.vegas.rel@gmail.com
 ''';
 
   @override
@@ -158,13 +150,46 @@ minoapp.vegas.rel@gmail.com
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
-        child: Text(
-          content,
-          style: const TextStyle(
-            fontSize: 13,
-            height: 1.8,
-            color: Color(0xFF333333),
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              content,
+              style: const TextStyle(
+                fontSize: 13,
+                height: 1.8,
+                color: Color(0xFF333333),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Divider(color: Color(0xFFFFCCDD)),
+            const SizedBox(height: 16),
+            Text(
+              isJa ? 'お問い合わせ' : 'Contact',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF5D3A1A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => launchUrl(
+                Uri.parse(_privacyUrl),
+                mode: LaunchMode.externalApplication,
+              ),
+              child: Text(
+                isJa
+                    ? 'プライバシーポリシー（Web版）をご確認ください'
+                    : 'Please refer to our Privacy Policy (Web)',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF9B6DD6),
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
