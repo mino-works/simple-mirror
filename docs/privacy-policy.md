@@ -47,7 +47,7 @@ Apple Inc. を通じた購入情報は [Apple のプライバシーポリシー]
 ### 8. お問い合わせ
 
 プライバシーに関するご質問は下記までご連絡ください。  
-Email: minokohei@gmail.com
+Email: minoapp.vegas.rel@gmail.com
 
 ---
 
@@ -89,4 +89,4 @@ This policy may be updated without prior notice. Significant changes will be com
 ### 8. Contact
 
 For privacy-related inquiries, please contact:  
-Email: minokohei@gmail.com
+Email: minoapp.vegas.rel@gmail.com
