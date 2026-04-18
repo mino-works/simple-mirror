@@ -1,6 +1,6 @@
 # プライバシーポリシー / Privacy Policy
 
-**うさぎ鏡占い (Simple Mirror)**
+**ミラー占い (Mirror Fortune)**
 
 最終更新日 / Last updated: 2026年4月18日 (April 18, 2026)
 
@@ -10,7 +10,7 @@
 
 ### 1. はじめに
 
-本プライバシーポリシーは、うさぎ鏡占い（以下「本アプリ」）における個人情報の取り扱いについて説明します。
+本プライバシーポリシーは、ミラー占い（以下「本アプリ」）における個人情報の取り扱いについて説明します。
 
 ### 2. 収集する情報
 
@@ -55,7 +55,7 @@ Email: minoapp.vegas.rel@gmail.com
 
 ### 1. Introduction
 
-This Privacy Policy explains how Simple Mirror (the "App") handles your information.
+This Privacy Policy explains how Mirror Fortune (the "App") handles your information.
 
 ### 2. Information We Collect
 
