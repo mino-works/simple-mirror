@@ -7,6 +7,7 @@ import '../providers/progress_provider.dart';
 import '../models/fortune.dart';
 import '../utils/fortune_translations.dart';
 import '../providers/iap_provider.dart';
+import '../utils/review_helper.dart';
 import 'costume_screen.dart';
 
 // ─── UI Constants ─────────────────────────────────────────────────────────────
@@ -55,9 +56,12 @@ class _FortuneResultScreenState extends ConsumerState<FortuneResultScreen> {
   @override
   void initState() {
     super.initState();
-    // 占い結果を見た日として記録（累計ログイン日数カウント）
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(progressProvider.notifier).recordFortuneView();
+      final fortune = ref.read(fortuneProvider);
+      if (fortune != null && fortune.overallLuck >= 80) {
+        ReviewHelper.requestForFortune();
+      }
     });
   }
 
@@ -118,7 +122,7 @@ class _FortuneResultScreenState extends ConsumerState<FortuneResultScreen> {
                                   },
                                 )
                               else
-                                _WatchAdButton(l: l),
+                                _UpgradePlanButton(l: l),
                               const SizedBox(height: 10),
                               _NavButtons(
                                 l: l,
@@ -526,37 +530,62 @@ class _ReDivineButton extends StatelessWidget {
   }
 }
 
-// ─── Watch ad button (placeholder) ───────────────────────────────────────────
-class _WatchAdButton extends StatelessWidget {
-  const _WatchAdButton({required this.l});
+// ─── Upgrade plan button ──────────────────────────────────────────────────────
+class _UpgradePlanButton extends ConsumerWidget {
+  const _UpgradePlanButton({required this.l});
   final AppLocalizations l;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final iap = ref.watch(iapProvider);
+
     return SizedBox(
-      width: double.infinity,
-      height: 44,
-      child: OutlinedButton.icon(
-        onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l.get('watch_ad_unavailable')),
-              backgroundColor: const Color(0xFF9B6DD6),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          );
-        },
-        icon: const Icon(Icons.play_circle_outline_rounded, size: 18),
-        label: Text(
-          l.get('watch_ad'),
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-        ),
+      width: 272,
+      height: 52,
+      child: OutlinedButton(
+        onPressed: iap.isLoading
+            ? null
+            : () async {
+                if (iap.product == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l.get('menu_premium_unavailable')),
+                      backgroundColor: const Color(0xFF9B6DD6),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                  return;
+                }
+                await ref.read(iapProvider.notifier).purchase();
+              },
         style: OutlinedButton.styleFrom(
           foregroundColor: const Color(0xFF9B6DD6),
           side: const BorderSide(color: Color(0xFFCCA8E8), width: 1.5),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          backgroundColor: Colors.transparent,
         ),
+        child: iap.isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(color: Color(0xFF9B6DD6), strokeWidth: 2),
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    l.get('plan_cta'),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                  ),
+                  Text(
+                    iap.product != null
+                        ? '${l.get('plan_name')} ${iap.product!.price}/月'
+                        : l.get('plan_cta_sub'),
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
       ),
     );
   }

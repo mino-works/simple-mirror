@@ -39,7 +39,7 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
   Future<void> debugAddDays(int n) async {
     final base = DateTime.now();
     final existing = {...state.loginDays};
-    for (var i = 1; existing.length < state.loginDays.length + n; i++) {
+    for (var i = 1; i <= n; i++) {
       final fake = base.subtract(Duration(days: i));
       existing.add('${fake.year}-${fake.month.toString().padLeft(2, '0')}-${fake.day.toString().padLeft(2, '0')}');
     }

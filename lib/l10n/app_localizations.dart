@@ -15,6 +15,7 @@ class AppLocalizations {
 
   static const _strings = <String, Map<String, String>>{
     'ja': {
+      'app_name': 'ミラー占い',
       // MirrorScreen
       'mirror': 'ミラー',
       'others_view': '他人から',
@@ -46,14 +47,23 @@ class AppLocalizations {
       'lang_ja': '日本語',
       'lang_en': 'English',
       // IAP
+      'plan_name': '毎日プラン',
+      'plan_tagline': '何度でも占い放題・広告なし',
+      'plan_cta': 'もっと占う',
+      'plan_cta_sub': '毎日プランで占い放題',
       'redivine': 'もう一度占う',
-      'premium_subscribe': 'プレミアムに登録',
+      'premium_subscribe': '毎日プランに登録',
       'premium_restore': '購入を復元',
       'premium_loading': '処理中...',
-      'premium_already': 'プレミアム会員です',
-      'premium_active_badge': 'PREMIUM',
+      'premium_already': '毎日プラン加入中',
+      'premium_active_badge': '毎日プラン',
+      // Legal
+      'menu_support': 'サポート',
+      'menu_terms': '利用規約',
+      'menu_privacy': 'プライバシーポリシー',
     },
     'en': {
+      'app_name': 'Mirror Fortune',
       'mirror': 'Mirror',
       'others_view': "Others' View",
       'divining': 'Divining...',
@@ -80,12 +90,20 @@ class AppLocalizations {
       'lang_ja': '日本語',
       'lang_en': 'English',
       // IAP
+      'plan_name': 'Daily Plan',
+      'plan_tagline': 'Unlimited fortunes, no ads',
+      'plan_cta': 'Divine More',
+      'plan_cta_sub': 'Unlimited with Daily Plan',
       'redivine': 'Divine Again',
-      'premium_subscribe': 'Subscribe to Premium',
+      'premium_subscribe': 'Subscribe to Daily Plan',
       'premium_restore': 'Restore Purchases',
       'premium_loading': 'Processing...',
-      'premium_already': "You're a Premium Member",
-      'premium_active_badge': 'PREMIUM',
+      'premium_already': 'Daily Plan Active',
+      'premium_active_badge': 'Daily Plan',
+      // Legal
+      'menu_support': 'Support',
+      'menu_terms': 'Terms of Service',
+      'menu_privacy': 'Privacy Policy',
     },
   };
 

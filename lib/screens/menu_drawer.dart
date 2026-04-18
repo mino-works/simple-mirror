@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/locale_provider.dart';
 import '../providers/iap_provider.dart';
+import 'legal_screen.dart';
 
 class MenuDrawer extends ConsumerWidget {
   const MenuDrawer({super.key});
@@ -31,7 +32,7 @@ class MenuDrawer extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
                 child: Text(
-                  'Simple Mirror',
+                  l.get('app_name'),
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w900,
@@ -79,7 +80,7 @@ class MenuDrawer extends ConsumerWidget {
                     child: Text(
                       l.get('premium_restore'),
                       style: const TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
                         color: Color(0xFF9B6DD6),
                         decoration: TextDecoration.underline,
                       ),
@@ -101,6 +102,30 @@ class MenuDrawer extends ConsumerWidget {
                 label: l.get('lang_en'),
                 isSelected: locale.languageCode == 'en',
                 onTap: () => ref.read(localeProvider.notifier).setLocale(const Locale('en')),
+              ),
+              const SizedBox(height: 8),
+              const Divider(color: Color(0xFFFFCCDD), thickness: 1, height: 1),
+              const SizedBox(height: 8),
+
+              // ── サポート ──
+              _SectionHeader(title: l.get('menu_support')),
+              _TextItem(
+                title: l.get('menu_terms'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => const LegalScreen(type: LegalType.terms),
+                  ));
+                },
+              ),
+              _TextItem(
+                title: l.get('menu_privacy'),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => const LegalScreen(type: LegalType.privacy),
+                  ));
+                },
               ),
             ],
           ),
@@ -132,7 +157,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: FontWeight.w700,
           color: Color(0xFFAA88AA),
           letterSpacing: 1,
@@ -161,25 +186,47 @@ class _MenuItem extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
       leading: Container(
-        width: 40,
-        height: 40,
+        width: 36,
+        height: 36,
         decoration: BoxDecoration(
           color: iconColor.withAlpha(30),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: iconColor, size: 22),
+        child: Icon(icon, color: iconColor, size: 20),
       ),
       title: Text(
         title,
         style: const TextStyle(
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: Color(0xFF5D3A1A),
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(fontSize: 11, color: Color(0xFFAA88AA)),
+        style: const TextStyle(fontSize: 10, color: Color(0xFFAA88AA)),
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+class _TextItem extends StatelessWidget {
+  const _TextItem({required this.title, required this.onTap});
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF5D3A1A),
+        ),
       ),
       onTap: onTap,
     );
@@ -203,12 +250,12 @@ class _LangOption extends StatelessWidget {
       leading: Icon(
         isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
         color: isSelected ? const Color(0xFF9B6DD6) : const Color(0xFFCCAACC),
-        size: 22,
+        size: 20,
       ),
       title: Text(
         label,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 13,
           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           color: isSelected ? const Color(0xFF5D3A1A) : const Color(0xFF9B7777),
         ),

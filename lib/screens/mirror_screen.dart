@@ -333,7 +333,11 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
                             0.2126, 0.7152, 0.0722, 0, 0,
                             0,      0,      0,      1, 0,
                           ]),
-                    child: Image.asset('assets/images/fortune.png', fit: BoxFit.contain),
+                    child: Image.asset(
+                      'assets/images/fortune.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Icon(Icons.auto_awesome, color: Colors.white70, size: 28),
+                    ),
                   ),
                 ),
               ),

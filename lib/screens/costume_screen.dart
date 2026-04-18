@@ -4,15 +4,35 @@ import '../l10n/app_localizations.dart';
 import '../models/costume.dart';
 import '../providers/costume_provider.dart';
 import '../providers/progress_provider.dart';
+import '../utils/review_helper.dart';
 
-class CostumeScreen extends ConsumerWidget {
+class CostumeScreen extends ConsumerStatefulWidget {
   const CostumeScreen({super.key});
 
+  @override
+  ConsumerState<CostumeScreen> createState() => _CostumeScreenState();
+}
+
+class _CostumeScreenState extends ConsumerState<CostumeScreen> {
   static const _available = [Costume.normal, Costume.carrot, Costume.dress];
   static const _comingSoonCount = 5;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final progress = ref.read(progressProvider);
+      final hasUnlockedNonNormal = _available
+          .where((c) => c != Costume.normal)
+          .any((c) => progress.totalDays >= c.unlockDays);
+      if (hasUnlockedNonNormal) {
+        ReviewHelper.requestForCostume();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final selected = ref.watch(costumeProvider);
     final progress = ref.watch(progressProvider);
     final l = AppLocalizations.of(context);
