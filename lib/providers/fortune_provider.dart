@@ -37,6 +37,13 @@ class FortuneNotifier extends StateNotifier<Fortune?> {
     state = fortune;
   }
 
+  Future<void> clearFortune() async {
+    state = null;
+    final prefs = await SharedPreferences.getInstance();
+    final todayKey = DateUtils.getTodayKey();
+    await prefs.remove(todayKey);
+  }
+
   // デバッグ用: 特定のFortuneを直接セットする
   void setFortune(Fortune fortune) {
     state = fortune;

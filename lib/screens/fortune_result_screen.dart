@@ -117,9 +117,7 @@ class _FortuneResultScreenState extends ConsumerState<FortuneResultScreen> {
                               if (iap.isPremium)
                                 _ReDivineButton(
                                   l: l,
-                                  onTap: () async {
-                                    await ref.read(fortuneProvider.notifier).generateAndSaveFortune();
-                                  },
+                                  onTap: () => Navigator.of(context).pop('redivine'),
                                 )
                               else
                                 _UpgradePlanButton(l: l),

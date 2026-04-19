@@ -173,8 +173,16 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
     } catch (_) {}
   }
 
-  void _goToResult() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FortuneResultScreen()));
+  Future<void> _goToResult() async {
+    final result = await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FortuneResultScreen()));
+    if (result == 'redivine' && mounted) {
+      await ref.read(fortuneProvider.notifier).clearFortune();
+      setState(() {
+        _bubbleVisible = false;
+        _bubbleState = _BubbleState.inProgress;
+      });
+      _startFortuneFlow();
+    }
   }
 
   @override
