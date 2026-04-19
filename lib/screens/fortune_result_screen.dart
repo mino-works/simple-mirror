@@ -580,7 +580,7 @@ class _UpgradePlanButton extends ConsumerWidget {
                   ),
                   Text(
                     iap.product != null
-                        ? '${l.get('plan_name')} ${iap.product!.price}/月'
+                        ? '${l.get('plan_name')} ${iap.product!.price}${l.get('per_month')}'
                         : l.get('plan_cta_sub'),
                     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
                   ),

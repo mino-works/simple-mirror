@@ -66,13 +66,14 @@ class MenuDrawer extends ConsumerWidget {
                       ? () {}
                       : () async {
                           if (iap.product == null) {
+                            Navigator.pop(context);
                             _showSnackbar(context, l.get('menu_premium_unavailable'));
                             return;
                           }
                           await ref.read(iapProvider.notifier).purchase();
                         },
                 ),
-              if (!iap.isPremium)
+              if (!iap.isPremium) ...[
                 Padding(
                   padding: const EdgeInsets.only(left: 20, bottom: 4),
                   child: GestureDetector(
@@ -87,6 +88,18 @@ class MenuDrawer extends ConsumerWidget {
                     ),
                   ),
                 ),
+                if (iap.error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, bottom: 4, right: 20),
+                    child: Text(
+                      _errorMessage(context, iap.error!),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFFAA88AA),
+                      ),
+                    ),
+                  ),
+              ],
               const SizedBox(height: 8),
               const Divider(color: Color(0xFFFFCCDD), thickness: 1, height: 1),
               const SizedBox(height: 8),
@@ -132,6 +145,17 @@ class MenuDrawer extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _errorMessage(BuildContext context, String error) {
+    final isJa = Localizations.localeOf(context).languageCode == 'ja';
+    if (error == 'restore_empty') {
+      return isJa ? '復元できる購入履歴がありませんでした' : 'No purchases found to restore';
+    }
+    if (error == 'pending') {
+      return isJa ? '購入が保留中です。しばらくお待ちください' : 'Purchase is pending. Please wait a moment.';
+    }
+    return isJa ? '購入に失敗しました。もう一度お試しください' : 'Purchase failed. Please try again.';
   }
 
   void _showSnackbar(BuildContext context, String message) {

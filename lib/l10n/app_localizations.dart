@@ -42,7 +42,7 @@ class AppLocalizations {
       // Menu
       'menu_premium': 'プレミアム',
       'menu_premium_desc': '占い無制限',
-      'menu_premium_unavailable': '課金機能は近日公開予定です',
+      'menu_premium_unavailable': '購入情報を取得できませんでした。しばらくしてからお試しください',
       'menu_language': '言語',
       'lang_ja': '日本語',
       'lang_en': 'English',
@@ -57,6 +57,7 @@ class AppLocalizations {
       'premium_loading': '処理中...',
       'premium_already': '無制限プラン加入中',
       'premium_active_badge': '無制限プラン',
+      'per_month': '/月',
       // Legal
       'menu_support': 'サポート',
       'menu_terms': '利用規約',
@@ -85,7 +86,7 @@ class AppLocalizations {
       'costume_dress': 'Dress',
       'menu_premium': 'Premium',
       'menu_premium_desc': 'Unlimited fortunes',
-      'menu_premium_unavailable': 'Purchase feature coming soon',
+      'menu_premium_unavailable': 'Could not load purchase info. Please try again later.',
       'menu_language': 'Language',
       'lang_ja': '日本語',
       'lang_en': 'English',
@@ -100,6 +101,7 @@ class AppLocalizations {
       'premium_loading': 'Processing...',
       'premium_already': 'Unlimited Plan Active',
       'premium_active_badge': 'Unlimited Plan',
+      'per_month': '/month',
       // Legal
       'menu_support': 'Support',
       'menu_terms': 'Terms of Service',

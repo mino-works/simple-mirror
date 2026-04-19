@@ -71,6 +71,10 @@ class IapNotifier extends StateNotifier<IapState> {
         await _iap.completePurchase(p);
       } else if (p.status == PurchaseStatus.error) {
         state = state.copyWith(isLoading: false, error: p.error?.message);
+      } else if (p.status == PurchaseStatus.canceled) {
+        state = state.copyWith(isLoading: false);
+      } else if (p.status == PurchaseStatus.pending) {
+        state = state.copyWith(isLoading: false, error: 'pending');
       }
     }
     if (state.isLoading) {
@@ -88,14 +92,24 @@ class IapNotifier extends StateNotifier<IapState> {
     final product = state.product;
     if (product == null) return;
     state = state.copyWith(isLoading: true, clearError: true);
-    await _iap.buyNonConsumable(
-      purchaseParam: PurchaseParam(productDetails: product),
-    );
+    try {
+      await _iap.buyNonConsumable(
+        purchaseParam: PurchaseParam(productDetails: product),
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
   }
 
   Future<void> restore() async {
     state = state.copyWith(isLoading: true, clearError: true);
     await _iap.restorePurchases();
+    // If no purchases exist, the stream never emits and isLoading stays true.
+    // Fall back to clearing after 4 seconds.
+    await Future.delayed(const Duration(seconds: 4));
+    if (state.isLoading) {
+      state = state.copyWith(isLoading: false, error: 'restore_empty');
+    }
   }
 
   @override
