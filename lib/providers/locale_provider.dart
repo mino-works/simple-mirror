@@ -3,15 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocaleNotifier extends StateNotifier<Locale> {
-  LocaleNotifier() : super(const Locale('ja')) {
-    _load();
-  }
-
-  Future<void> _load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final code = prefs.getString('locale') ?? 'ja';
-    state = Locale(code);
-  }
+  LocaleNotifier([String initialCode = 'ja']) : super(Locale(initialCode));
 
   Future<void> setLocale(Locale locale) async {
     state = locale;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/date_utils.dart';
@@ -18,12 +19,16 @@ class ProgressNotifier extends StateNotifier<ProgressState> {
     _load();
   }
 
+  final _initCompleter = Completer<void>();
+  Future<void> get initialized => _initCompleter.future;
+
   static const _key = 'login_days';
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     final list = prefs.getStringList(_key) ?? [];
     state = ProgressState(loginDays: Set<String>.from(list));
+    _initCompleter.complete();
   }
 
   Future<void> recordFortuneView() async {

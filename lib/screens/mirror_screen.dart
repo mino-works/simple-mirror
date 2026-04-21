@@ -6,7 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/fortune_provider.dart';
 import '../providers/fortune_count_provider.dart';
 import '../providers/iap_provider.dart';
-// import '../providers/progress_provider.dart'; // デバッグ用
+import '../providers/progress_provider.dart';
 // import '../utils/fortune_generator.dart'; // デバッグ用
 import 'fortune_result_screen.dart';
 import 'costume_screen.dart';
@@ -124,6 +124,7 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
     await Future.wait([
       ref.read(fortuneProvider.notifier).initialized,
       ref.read(fortuneCountProvider.notifier).initialized,
+      ref.read(progressProvider.notifier).initialized,
     ]);
     if (!mounted) return;
 
@@ -174,7 +175,10 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   }
 
   Future<void> _goToResult() async {
-    final result = await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const FortuneResultScreen()));
+    final nav = Navigator.of(context);
+    if (_controller?.value.isInitialized == true) await _controller!.pausePreview();
+    final result = await nav.push(MaterialPageRoute(builder: (_) => const FortuneResultScreen()));
+    if (_controller?.value.isInitialized == true) await _controller!.resumePreview();
     if (result == 'redivine' && mounted) {
       await ref.read(fortuneProvider.notifier).clearFortune();
       setState(() {
@@ -355,9 +359,12 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
         const SizedBox(height: 8),
         // 着せ替えアイコン
         GestureDetector(
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const CostumeScreen()),
-          ),
+          onTap: () async {
+            final nav = Navigator.of(context);
+            if (_controller?.value.isInitialized == true) await _controller!.pausePreview();
+            await nav.push(MaterialPageRoute(builder: (_) => const CostumeScreen()));
+            if (_controller?.value.isInitialized == true) await _controller!.resumePreview();
+          },
           child: _buildIconCircle(
             borderColor: const Color(0xFFCCA8E8),
             bgColor: Colors.white,
