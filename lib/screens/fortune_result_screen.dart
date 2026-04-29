@@ -9,6 +9,7 @@ import '../utils/fortune_translations.dart';
 import '../providers/iap_provider.dart';
 import '../utils/review_helper.dart';
 import 'costume_screen.dart';
+import 'legal_screen.dart';
 
 // ─── UI Constants ─────────────────────────────────────────────────────────────
 abstract class _C {
@@ -508,7 +509,7 @@ class _ReDivineButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity,
+      width: 272,
       height: 44,
       child: ElevatedButton.icon(
         onPressed: onTap,
@@ -537,54 +538,105 @@ class _UpgradePlanButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final iap = ref.watch(iapProvider);
 
-    return SizedBox(
-      width: 272,
-      height: 52,
-      child: OutlinedButton(
-        onPressed: iap.isLoading
-            ? null
-            : () async {
-                if (iap.product == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(l.get('menu_premium_unavailable')),
-                      backgroundColor: const Color(0xFF9B6DD6),
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  );
-                  return;
-                }
-                await ref.read(iapProvider.notifier).purchase();
-              },
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFF9B6DD6),
-          side: const BorderSide(color: Color(0xFFCCA8E8), width: 1.5),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          backgroundColor: Colors.transparent,
+    final isJa = Localizations.localeOf(context).languageCode == 'ja';
+
+    return Column(
+      children: [
+        SizedBox(
+          width: 272,
+          height: 52,
+          child: OutlinedButton(
+            onPressed: iap.isLoading
+                ? null
+                : () async {
+                    if (iap.product == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l.get('menu_premium_unavailable')),
+                          backgroundColor: const Color(0xFF9B6DD6),
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      );
+                      return;
+                    }
+                    await ref.read(iapProvider.notifier).purchase();
+                  },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF9B6DD6),
+              side: const BorderSide(color: Color(0xFFCCA8E8), width: 1.5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              backgroundColor: Colors.transparent,
+            ),
+            child: iap.isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(color: Color(0xFF9B6DD6), strokeWidth: 2),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        l.get('plan_cta'),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                      ),
+                      Text(
+                        iap.product != null
+                            ? '${l.get('plan_name')} ${iap.product!.price}${l.get('per_month')}'
+                            : l.get('plan_cta_sub'),
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+          ),
         ),
-        child: iap.isLoading
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(color: Color(0xFF9B6DD6), strokeWidth: 2),
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    l.get('plan_cta'),
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
-                  ),
-                  Text(
-                    iap.product != null
-                        ? '${l.get('plan_name')} ${iap.product!.price}${l.get('per_month')}'
-                        : l.get('plan_cta_sub'),
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-                  ),
-                ],
+        const SizedBox(height: 8),
+        SizedBox(
+          width: 272,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('・ ${l.get('subscription_benefit')}',
+                  style: const TextStyle(fontSize: 10, color: Color(0xFF888888), height: 1.6)),
+              Text('・ ${l.get('subscription_manage')}',
+                  style: const TextStyle(fontSize: 10, color: Color(0xFF888888), height: 1.6)),
+              Text('・ ${l.get('subscription_cancel')}',
+                  style: const TextStyle(fontSize: 10, color: Color(0xFF888888), height: 1.6)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          l.get('subscription_monthly'),
+          style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA)),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const LegalScreen(type: LegalType.terms),
+              )),
+              child: Text(
+                isJa ? '利用規約' : 'Terms of Service',
+                style: const TextStyle(fontSize: 10, color: Color(0xFF9B6DD6), decoration: TextDecoration.underline),
               ),
-      ),
+            ),
+            const Text('  ·  ', style: TextStyle(fontSize: 10, color: Color(0xFFAAAAAA))),
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const LegalScreen(type: LegalType.privacy),
+              )),
+              child: Text(
+                isJa ? 'プライバシーポリシー' : 'Privacy Policy',
+                style: const TextStyle(fontSize: 10, color: Color(0xFF9B6DD6), decoration: TextDecoration.underline),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

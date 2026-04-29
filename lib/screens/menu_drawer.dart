@@ -60,7 +60,7 @@ class MenuDrawer extends ConsumerWidget {
                   iconColor: const Color(0xFFFFCC00),
                   title: iap.isLoading ? l.get('premium_loading') : l.get('premium_subscribe'),
                   subtitle: iap.product != null
-                      ? iap.product!.price
+                      ? '${iap.product!.price}${l.get('per_month')} ・ ${l.get('subscription_monthly')}'
                       : l.get('menu_premium_desc'),
                   onTap: iap.isLoading
                       ? () {}

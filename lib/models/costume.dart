@@ -1,7 +1,8 @@
 enum Costume {
   normal,
   carrot,
-  dress;
+  dress,
+  hiphop;
 
   /// ローカライズキー
   String get labelKey {
@@ -12,6 +13,8 @@ enum Costume {
         return 'costume_carrot';
       case Costume.dress:
         return 'costume_dress';
+      case Costume.hiphop:
+        return 'costume_hiphop';
     }
   }
 
@@ -21,8 +24,10 @@ enum Costume {
       case Costume.normal:
         return 0;
       case Costume.carrot:
-        return 7;
+        return 3;
       case Costume.dress:
+        return 7;
+      case Costume.hiphop:
         return 14;
     }
   }
@@ -35,6 +40,8 @@ enum Costume {
         return 'assets/images/rabbits/carrot';
       case Costume.dress:
         return 'assets/images/rabbits/dress';
+      case Costume.hiphop:
+        return 'assets/images/rabbits/hiphop';
     }
   }
 

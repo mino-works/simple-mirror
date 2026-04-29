@@ -1,6 +1,9 @@
 # Claude Code local settings
 .claude/settings.local.json
 
+# Private notes
+apple_review_knowhow.md
+
 # Miscellaneous
 *.class
 *.log

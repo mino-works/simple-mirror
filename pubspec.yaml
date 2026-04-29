@@ -76,6 +76,7 @@ flutter:
     - assets/images/rabbits/default/
     - assets/images/rabbits/carrot/
     - assets/images/rabbits/dress/
+    - assets/images/rabbits/hiphop/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

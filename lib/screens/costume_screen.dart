@@ -14,7 +14,7 @@ class CostumeScreen extends ConsumerStatefulWidget {
 }
 
 class _CostumeScreenState extends ConsumerState<CostumeScreen> {
-  static const _available = [Costume.normal, Costume.carrot, Costume.dress];
+  static const _available = [Costume.normal, Costume.carrot, Costume.dress, Costume.hiphop];
   static const _comingSoonCount = 5;
 
   @override
