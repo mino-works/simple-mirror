@@ -8,10 +8,6 @@ class ProgressState {
   const ProgressState({required this.loginDays});
 
   int get totalDays => loginDays.length;
-  bool get isCarrotUnlocked => totalDays >= 7;
-  bool get isDressUnlocked => totalDays >= 14;
-  int get daysUntilCarrot => (7 - totalDays).clamp(0, 7);
-  int get daysUntilDress => (14 - totalDays).clamp(0, 14);
 }
 
 class ProgressNotifier extends StateNotifier<ProgressState> {

@@ -13,10 +13,10 @@ class LegalScreen extends StatelessWidget {
   static const _termsJa = '''
 最終更新日：2026年4月18日
 
-本利用規約（以下「本規約」）は、ミラー占い（以下「本アプリ」）の利用条件を定めるものです。
+本利用規約（以下「本規約」）は、かがみ（以下「本アプリ」）の利用条件を定めるものです。
 
 ■ サービス内容
-本アプリは、カメラを使用したミラー機能および占いコンテンツを提供します。占い結果はエンターテインメント目的であり、正確性を保証するものではありません。
+本アプリは、カメラを使用したミラー機能およびデイリーメッセージコンテンツを提供します。メッセージはエンターテインメント目的であり、正確性を保証するものではありません。
 
 ■ 無制限プラン（サブスクリプション）
 ・料金：App Storeに表示される価格（月額）
@@ -30,7 +30,7 @@ class LegalScreen extends StatelessWidget {
 ・他のユーザーへの迷惑行為
 
 ■ 免責事項
-本アプリの占い結果は娯楽目的のものであり、利用者の行動に起因するいかなる損害についても責任を負いません。
+本アプリのデイリーメッセージは娯楽目的のものであり、利用者の行動に起因するいかなる損害についても責任を負いません。
 
 ■ 規約の変更
 本規約は予告なく変更される場合があります。変更後も本アプリを継続して利用された場合、変更に同意したものとみなします。
@@ -39,17 +39,17 @@ class LegalScreen extends StatelessWidget {
   static const _privacyJa = '''
 最終更新日：2026年4月18日
 
-本プライバシーポリシーは、ミラー占い（以下「本アプリ」）における個人情報の取り扱いについて説明します。
+本プライバシーポリシーは、かがみ（以下「本アプリ」）における個人情報の取り扱いについて説明します。
 
 ■ 収集する情報
 本アプリは以下の情報を収集します：
-・端末内に保存される占い履歴（サーバーへの送信なし）
+・端末内に保存されるメッセージ履歴（サーバーへの送信なし）
 ・サブスクリプション購入情報（Apple経由）
 ・カメラ映像（端末内でのみ使用、外部送信なし）
 
 ■ 情報の利用目的
 収集した情報は以下の目的にのみ使用します：
-・アプリ機能の提供（占い・ミラー機能）
+・アプリ機能の提供（デイリーメッセージ・ミラー機能）
 ・サブスクリプション管理
 
 ■ 第三者への提供
@@ -57,7 +57,7 @@ class LegalScreen extends StatelessWidget {
 Apple Inc. のサービスを通じた購入情報はAppleのプライバシーポリシーに従います。
 
 ■ データの保存
-占いデータ・設定情報はお使いの端末内にのみ保存されます。
+メッセージデータ・設定情報はお使いの端末内にのみ保存されます。
 
 ■ カメラ使用について
 カメラはミラー機能にのみ使用します。撮影した映像は保存・外部送信されません。
@@ -73,10 +73,10 @@ Apple Inc. のサービスを通じた購入情報はAppleのプライバシー�
   static const _termsEn = '''
 Last updated: April 18, 2026
 
-These Terms of Service govern your use of Mirror Fortune (the "App").
+These Terms of Service govern your use of Mirror (the "App").
 
 ■ Service Description
-The App provides a camera-based mirror feature and fortune-telling content. Fortune results are for entertainment purposes only and accuracy is not guaranteed.
+The App provides a camera-based mirror feature and daily message content. Messages are for entertainment purposes only and accuracy is not guaranteed.
 
 ■ Unlimited Plan (Subscription)
 • Price: as shown in the App Store
@@ -90,7 +90,7 @@ The App provides a camera-based mirror feature and fortune-telling content. Fort
 • Harassing other users
 
 ■ Disclaimer
-Fortune results are for entertainment only. We are not liable for any actions taken based on the App's content.
+Daily messages are for entertainment only. We are not liable for any actions taken based on the App's content.
 
 ■ Changes to Terms
 These terms may be updated without notice. Continued use of the App after changes constitutes acceptance.
@@ -99,16 +99,16 @@ These terms may be updated without notice. Continued use of the App after change
   static const _privacyEn = '''
 Last updated: April 18, 2026
 
-This Privacy Policy explains how Mirror Fortune (the "App") handles your information.
+This Privacy Policy explains how Mirror (the "App") handles your information.
 
 ■ Information We Collect
-• Fortune history stored locally on your device (not sent to servers)
+• Message history stored locally on your device (not sent to servers)
 • Subscription purchase information (via Apple)
 • Camera feed (used only on-device, never transmitted externally)
 
 ■ How We Use Information
 Information is used solely to:
-• Provide app features (fortune telling & mirror)
+• Provide app features (daily messages & mirror)
 • Manage subscriptions
 
 ■ Third-Party Sharing
@@ -116,7 +116,7 @@ We do not sell, share, or disclose personal information to third parties.
 Purchase information through Apple is governed by Apple's Privacy Policy.
 
 ■ Data Storage
-Fortune data and settings are stored only on your device.
+Message data and settings are stored only on your device.
 
 ■ Camera Usage
 The camera is used only for the mirror feature. No footage is saved or transmitted.
