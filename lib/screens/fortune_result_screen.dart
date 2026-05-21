@@ -27,9 +27,6 @@ abstract class _C {
   static const Color workCard = Color(0xFFE8F5FF);
   static const Color commentCard = Color(0xFFF0F8FF);  // より薄い水色
   static const Color brownText = Color(0xFF5D3A1A);
-  static const Color starFilled = Color(0xFFFFCC00);
-  static const Color starOutline = Color(0xFFB87800);  // 星の縁取り（濃い琥珀）
-  static const Color starEmpty = Color(0xFFAAAAAA);    // より濃いグレー
   static const Color shadow = Color(0x22000000);
   static const Color closeShadow = Color(0x66FF6E99);
 
@@ -243,8 +240,6 @@ class _FortuneCardsRow extends StatelessWidget {
   final bool narrow;
   final AppLocalizations l;
 
-  static int _toStars(int value) => (value / 20).round().clamp(1, 5);
-
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -254,7 +249,7 @@ class _FortuneCardsRow extends StatelessWidget {
           child: _FortuneCard(
             iconPath: _C.iconLove,
             label: l.get('love'),
-            stars: _toStars(fortune.loveLuck),
+            luck: fortune.loveLuck,
             bgColor: _C.loveCard,
             narrow: narrow,
           ),
@@ -264,7 +259,7 @@ class _FortuneCardsRow extends StatelessWidget {
           child: _FortuneCard(
             iconPath: _C.iconMoney,
             label: l.get('money'),
-            stars: _toStars(fortune.moneyLuck),
+            luck: fortune.moneyLuck,
             bgColor: _C.moneyCard,
             narrow: narrow,
           ),
@@ -274,7 +269,7 @@ class _FortuneCardsRow extends StatelessWidget {
           child: _FortuneCard(
             iconPath: _C.iconWork,
             label: l.get('work'),
-            stars: _toStars(fortune.workLuck),
+            luck: fortune.workLuck,
             bgColor: _C.workCard,
             narrow: narrow,
           ),
@@ -289,22 +284,42 @@ class _FortuneCard extends StatelessWidget {
   const _FortuneCard({
     required this.iconPath,
     required this.label,
-    required this.stars,
+    required this.luck,
     required this.bgColor,
     required this.narrow,
   });
 
   final String iconPath;
   final String label;
-  final int stars;
+  final int luck;
   final Color bgColor;
   final bool narrow;
 
+  static String _emoji(int luck) {
+    if (luck >= 80) return '✨';
+    if (luck >= 60) return '😊';
+    if (luck >= 40) return '😌';
+    return '😴';
+  }
+
+  static String _keyword(int luck, String lang) {
+    if (lang == 'en') {
+      if (luck >= 80) return 'Excellent';
+      if (luck >= 60) return 'Good';
+      if (luck >= 40) return 'Okay';
+      return 'Easy';
+    }
+    if (luck >= 80) return '絶好調';
+    if (luck >= 60) return '好調';
+    if (luck >= 40) return 'まあまあ';
+    return 'ゆっくり';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final lang = Localizations.localeOf(context).languageCode;
     final iconSize = narrow ? 36.0 : 44.0;
     final labelSize = narrow ? 11.0 : 13.0;
-    final starSize = narrow ? 21.0 : 24.0;
     final vPad = narrow ? 6.0 : 9.0;
 
     return Container(
@@ -319,51 +334,35 @@ class _FortuneCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // アイコン
           Image.asset(
             iconPath,
             width: iconSize,
             height: iconSize,
             fit: BoxFit.contain,
-            errorBuilder: (_, _, _) => Icon(
-              Icons.star_rounded,
-              size: iconSize,
-              color: Colors.grey.shade400,
-            ),
+            errorBuilder: (_, _, _) => Icon(Icons.auto_awesome, size: iconSize, color: Colors.grey.shade400),
           ),
           const SizedBox(height: 4),
-          // ラベル
           Text(
             label,
-            style: TextStyle(
-              fontSize: labelSize,
-              fontWeight: FontWeight.w800,
-              color: _C.brownText,
-            ),
+            style: TextStyle(fontSize: labelSize, fontWeight: FontWeight.w800, color: _C.brownText),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
-          // 星評価（必ず1行）
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(5, (i) {
-                if (i < stars) {
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Icon(Icons.star_rounded, color: _C.starOutline, size: starSize + 3),
-                      Icon(Icons.star_rounded, color: _C.starFilled, size: starSize),
-                    ],
-                  );
-                }
-                return Icon(Icons.star_outline_rounded, color: _C.starEmpty, size: starSize);
-              }),
+          const SizedBox(height: 6),
+          Text(
+            _emoji(luck),
+            style: TextStyle(fontSize: narrow ? 20.0 : 24.0),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            _keyword(luck, lang),
+            style: TextStyle(
+              fontSize: narrow ? 10.0 : 11.0,
+              fontWeight: FontWeight.w700,
+              color: _C.brownText.withAlpha(180),
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

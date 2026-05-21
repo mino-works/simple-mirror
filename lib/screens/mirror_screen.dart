@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:camera/camera.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/fortune_provider.dart';
 import '../providers/fortune_count_provider.dart';
@@ -37,6 +39,14 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
   late final AnimationController _bounceCtrl;
   late final Animation<double> _bounceAnim;
 
+  // 朝活タイマー
+  final _stopwatch = Stopwatch();
+  Timer? _timerTick;
+  int _savedTodaySeconds = 0;
+  static const _timerDateKey = 'routine_date';
+  static const _timerSecondsKey = 'routine_seconds';
+  int get _totalSeconds => _savedTodaySeconds + _stopwatch.elapsed.inSeconds;
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +59,39 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
       end: -6.0,
     ).animate(CurvedAnimation(parent: _bounceCtrl, curve: Curves.easeInOut));
     _initializeCamera();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _loadTodayTimer();
+    _stopwatch.start();
+    _timerTick = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  static String _todayKey() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _loadTodayTimer() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = _todayKey();
+    if (prefs.getString(_timerDateKey) == today) {
+      if (mounted) setState(() => _savedTodaySeconds = prefs.getInt(_timerSecondsKey) ?? 0);
+    } else {
+      await prefs.setString(_timerDateKey, today);
+      await prefs.setInt(_timerSecondsKey, 0);
+    }
+  }
+
+  Future<void> _saveTimer() async {
+    final prefs = await SharedPreferences.getInstance();
+    _savedTodaySeconds = _totalSeconds;
+    await prefs.setString(_timerDateKey, _todayKey());
+    await prefs.setInt(_timerSecondsKey, _savedTodaySeconds);
+    _stopwatch.reset();
   }
 
   Future<void> _initializeCamera() async {
@@ -176,9 +219,12 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
 
   Future<void> _goToResult() async {
     final nav = Navigator.of(context);
+    _stopwatch.stop();
+    await _saveTimer();
     if (_controller?.value.isInitialized == true) await _controller!.pausePreview();
     final result = await nav.push(MaterialPageRoute(builder: (_) => const FortuneResultScreen()));
     if (_controller?.value.isInitialized == true) await _controller!.resumePreview();
+    _stopwatch.start();
     if (result == 'redivine' && mounted) {
       await ref.read(fortuneProvider.notifier).clearFortune();
       setState(() {
@@ -191,6 +237,9 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
 
   @override
   void dispose() {
+    _timerTick?.cancel();
+    _stopwatch.stop();
+    _saveTimer();
     _bounceCtrl.dispose();
     _controller?.dispose();
     super.dispose();
@@ -233,6 +282,13 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
             child: _buildTopRightIcons(l),
           ),
 
+          // 朝活タイマー
+          Positioned(
+            top: top + 62,
+            left: 16,
+            child: _buildTimerDisplay(),
+          ),
+
           // デバッグボタン（明るさスライダーの下）
           // Positioned(
           //   top: top + 70,
@@ -271,6 +327,34 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
           border: Border.all(color: Colors.white.withAlpha(60), width: 1),
         ),
         child: const Icon(Icons.menu_rounded, color: Colors.white, size: 18),
+      ),
+    );
+  }
+
+  Widget _buildTimerDisplay() {
+    final total = _totalSeconds;
+    final h = total ~/ 3600;
+    final m = (total % 3600) ~/ 60;
+    final s = total % 60;
+    final label = h > 0
+        ? '$h:${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}'
+        : '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black.withAlpha(110),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.timer_outlined, color: Colors.white60, size: 12),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }
@@ -361,9 +445,12 @@ class _MirrorScreenState extends ConsumerState<MirrorScreen>
         GestureDetector(
           onTap: () async {
             final nav = Navigator.of(context);
+            _stopwatch.stop();
+            await _saveTimer();
             if (_controller?.value.isInitialized == true) await _controller!.pausePreview();
             await nav.push(MaterialPageRoute(builder: (_) => const CostumeScreen()));
             if (_controller?.value.isInitialized == true) await _controller!.resumePreview();
+            _stopwatch.start();
           },
           child: _buildIconCircle(
             borderColor: const Color(0xFFCCA8E8),
